@@ -18,6 +18,7 @@ const ColumnMethod: React.FC = () => {
     counterEvidence: '',
     adaptiveThought: '',
     emotionChange: 5,
+    newEmotions: [], // 追加
   });
 
   const sections: { type: SectionType; title: string; description: string }[] = [
@@ -75,6 +76,7 @@ const ColumnMethod: React.FC = () => {
       counterEvidence: entry.counterEvidence || '',
       adaptiveThought: entry.adaptiveThought || '',
       emotionChange: entry.emotionChange || 5,
+      newEmotions: entry.newEmotions || [], // 追加
       createdAt: new Date(),
       updatedAt: new Date()
     };
@@ -111,6 +113,7 @@ const ColumnMethod: React.FC = () => {
       counterEvidence: '',
       adaptiveThought: '',
       emotionChange: 5,
+      newEmotions: [], // 追加
     });
     setCurrentSection('situation');
   };
@@ -126,6 +129,7 @@ const ColumnMethod: React.FC = () => {
         counterEvidence: '',
         adaptiveThought: '',
         emotionChange: 5,
+        newEmotions: [], // 追加
       });
       setCurrentSection('situation');
     }
@@ -208,8 +212,10 @@ const ColumnMethod: React.FC = () => {
               counterEvidence: entry.counterEvidence || '',
               adaptiveThought: entry.adaptiveThought || '',
               emotionChange: entry.emotionChange || 5,
+              newEmotions: entry.newEmotions || [],
             }}
             onUpdate={updateEntry}
+            originalEmotions={entry.emotions || []}
           />
         );
       default:

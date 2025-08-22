@@ -27,6 +27,10 @@ const History: React.FC = () => {
         counterEvidence: '準備不足だっただけで、普段はしっかり仕事をしている',
         adaptiveThought: '今回は準備不足だったが、次回はもっと準備して臨める',
         emotionChange: 6,
+        newEmotions: [
+          { emotion: '軽い不安', intensity: 4 },
+          { emotion: '希望', intensity: 7 }
+        ],
         createdAt: new Date('2025-01-20T14:30'),
         updatedAt: new Date('2025-01-20T14:30')
       },
@@ -43,6 +47,10 @@ const History: React.FC = () => {
         counterEvidence: '相手にも事情があったかもしれない、親切な気持ちは間違いではない',
         adaptiveThought: '相手の気持ちを尊重することも大切、親切な気持ちを持てた自分を評価しよう',
         emotionChange: 3,
+        newEmotions: [
+          { emotion: '理解', intensity: 6 },
+          { emotion: '自己受容', intensity: 5 }
+        ],
         createdAt: new Date('2025-01-19T09:15'),
         updatedAt: new Date('2025-01-19T09:15')
       },
@@ -59,6 +67,11 @@ const History: React.FC = () => {
         counterEvidence: '普段は約束を守っている、今回は特別忙しかった',
         adaptiveThought: 'たまには失敗もある、謝罪して今後気をつければ大丈夫',
         emotionChange: 4,
+        newEmotions: [
+          { emotion: '軽い罪悪感', intensity: 4 },
+          { emotion: '反省', intensity: 6 },
+          { emotion: '決意', intensity: 7 }
+        ],
         createdAt: new Date('2025-01-18T16:45'),
         updatedAt: new Date('2025-01-18T16:45')
       }
@@ -437,16 +450,47 @@ const History: React.FC = () => {
                   <div>
                     <h3 className="text-sm font-medium text-gray-700 mb-2">感情の変化</h3>
                     <div className="bg-gray-50 p-4 rounded-lg">
-                      <div className="flex justify-between items-center mb-2">
-                        <span className="text-gray-700">新しい感情の強度</span>
-                        <span className="text-lg font-bold text-green-600">{selectedEntry.emotionChange}/10</span>
-                      </div>
-                      <div className="w-full bg-gray-200 rounded-full h-3">
-                        <div 
-                          className="bg-green-600 h-3 rounded-full" 
-                          style={{ width: `${selectedEntry.emotionChange * 10}%` }}
-                        ></div>
-                      </div>
+                      {selectedEntry.newEmotions && selectedEntry.newEmotions.length > 0 ? (
+                        <div className="space-y-4">
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                              <h4 className="text-xs font-medium text-gray-600 mb-2">適応思考前</h4>
+                              <div className="space-y-2">
+                                {selectedEntry.emotions.map((emotion, idx) => (
+                                  <div key={idx} className="flex justify-between items-center p-2 bg-red-100 rounded">
+                                    <span className="text-red-800 text-sm">{emotion.emotion}</span>
+                                    <span className="text-red-600 font-medium text-sm">{emotion.intensity}/10</span>
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                            
+                            <div>
+                              <h4 className="text-xs font-medium text-gray-600 mb-2">適応思考後</h4>
+                              <div className="space-y-2">
+                                {selectedEntry.newEmotions.map((emotion, idx) => (
+                                  <div key={idx} className="flex justify-between items-center p-2 bg-green-100 rounded">
+                                    <span className="text-green-800 text-sm">{emotion.emotion}</span>
+                                    <span className="text-green-600 font-medium text-sm">{emotion.intensity}/10</span>
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                          </div>
+                          
+                          <div className="text-center mt-3 p-2 bg-white rounded border">
+                            <span className="text-sm font-bold text-blue-600">
+                              改善度: {Math.round((selectedEntry.emotions.reduce((sum, e) => sum + e.intensity, 0) / selectedEntry.emotions.length - 
+                                       selectedEntry.newEmotions.reduce((sum, e) => sum + e.intensity, 0) / selectedEntry.newEmotions.length) * 10) / 10} ポイント
+                            </span>
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="flex justify-between items-center mb-2">
+                          <span className="text-gray-700">全体的な感情の強度</span>
+                          <span className="text-lg font-bold text-green-600">{selectedEntry.emotionChange}/10</span>
+                        </div>
+                      )}
                     </div>
                   </div>
                 </div>

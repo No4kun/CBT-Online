@@ -15,6 +15,7 @@ export interface ColumnEntry {
   counterEvidence: string;
   adaptiveThought: string;
   emotionChange: number;
+  newEmotions: EmotionEntry[]; // 適応思考後の感情
   createdAt: Date;
   updatedAt: Date;
 }
@@ -40,4 +41,5 @@ export interface AdaptationSection {
   counterEvidence: string;
   adaptiveThought: string;
   emotionChange: number;
+  newEmotions: EmotionEntry[]; // 適応思考後の感情
 }
