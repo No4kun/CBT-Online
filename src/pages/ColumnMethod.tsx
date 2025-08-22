@@ -53,9 +53,66 @@ const ColumnMethod: React.FC = () => {
   };
 
   const handleSave = () => {
-    // TODO: データベースに保存
-    console.log('Saving entry:', entry);
-    alert('記録が保存されました！');
+    // 必須フィールドのバリデーション
+    if (!entry.situation || !entry.emotions || entry.emotions.length === 0) {
+      alert('状況と感情は必須項目です。');
+      return;
+    }
+
+    if (!entry.automaticThought) {
+      alert('自動思考は必須項目です。');
+      return;
+    }
+
+    // エントリを完全な形式に変換
+    const completeEntry: ColumnEntry = {
+      id: Date.now().toString(),
+      dateTime: entry.dateTime || new Date().toISOString().slice(0, 16),
+      situation: entry.situation || '',
+      emotions: entry.emotions || [],
+      automaticThought: entry.automaticThought || '',
+      evidence: entry.evidence || '',
+      counterEvidence: entry.counterEvidence || '',
+      adaptiveThought: entry.adaptiveThought || '',
+      emotionChange: entry.emotionChange || 5,
+      createdAt: new Date(),
+      updatedAt: new Date()
+    };
+
+    // localStorageから既存のエントリを取得
+    const existingEntries = localStorage.getItem('cbt-entries');
+    let entries: ColumnEntry[] = [];
+    
+    if (existingEntries) {
+      try {
+        entries = JSON.parse(existingEntries);
+      } catch (error) {
+        console.error('Error parsing existing entries:', error);
+        entries = [];
+      }
+    }
+
+    // 新しいエントリを追加
+    entries.unshift(completeEntry); // 最新のエントリを先頭に追加
+
+    // localStorageに保存
+    localStorage.setItem('cbt-entries', JSON.stringify(entries));
+
+    console.log('Entry saved:', completeEntry);
+    alert('記録が保存されました！履歴ページで確認できます。');
+
+    // フォームをリセット
+    setEntry({
+      dateTime: new Date().toISOString().slice(0, 16),
+      situation: '',
+      emotions: [],
+      automaticThought: '',
+      evidence: '',
+      counterEvidence: '',
+      adaptiveThought: '',
+      emotionChange: 5,
+    });
+    setCurrentSection('situation');
   };
 
   const handleReset = () => {
