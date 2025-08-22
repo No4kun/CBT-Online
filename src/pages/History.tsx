@@ -1,7 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Calendar, Clock, Eye, Trash2, Search, Filter, ArrowUpDown } from 'lucide-react';
+import { Calendar, Clock, Eye, Trash2, Search, Filter, ArrowUpDown, BarChart3, TrendingUp, TrendingDown } from 'lucide-react';
 import { ColumnEntry } from '../types';
+import { 
+  calculateImprovement, 
+  getEmotionColor,
+  categorizeEmotions 
+} from '../utils/emotionClassification';
 
 const History: React.FC = () => {
   const [entries, setEntries] = useState<ColumnEntry[]>([]);
@@ -448,42 +453,115 @@ const History: React.FC = () => {
                   </div>
 
                   <div>
-                    <h3 className="text-sm font-medium text-gray-700 mb-2">感情の変化</h3>
+                    <h3 className="text-sm font-medium text-gray-700 mb-2">感情の変化分析</h3>
                     <div className="bg-gray-50 p-4 rounded-lg">
                       {selectedEntry.newEmotions && selectedEntry.newEmotions.length > 0 ? (
                         <div className="space-y-4">
-                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div>
-                              <h4 className="text-xs font-medium text-gray-600 mb-2">適応思考前</h4>
-                              <div className="space-y-2">
-                                {selectedEntry.emotions.map((emotion, idx) => (
-                                  <div key={idx} className="flex justify-between items-center p-2 bg-red-100 rounded">
-                                    <span className="text-red-800 text-sm">{emotion.emotion}</span>
-                                    <span className="text-red-600 font-medium text-sm">{emotion.intensity}/10</span>
-                                  </div>
-                                ))}
-                              </div>
-                            </div>
+                          {(() => {
+                            const improvement = calculateImprovement(selectedEntry.emotions, selectedEntry.newEmotions);
+                            const originalCategorized = categorizeEmotions(selectedEntry.emotions);
+                            const newCategorized = categorizeEmotions(selectedEntry.newEmotions);
                             
-                            <div>
-                              <h4 className="text-xs font-medium text-gray-600 mb-2">適応思考後</h4>
-                              <div className="space-y-2">
-                                {selectedEntry.newEmotions.map((emotion, idx) => (
-                                  <div key={idx} className="flex justify-between items-center p-2 bg-green-100 rounded">
-                                    <span className="text-green-800 text-sm">{emotion.emotion}</span>
-                                    <span className="text-green-600 font-medium text-sm">{emotion.intensity}/10</span>
+                            return (
+                              <>
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                  <div>
+                                    <h4 className="text-xs font-medium text-gray-600 mb-2">適応思考前</h4>
+                                    <div className="space-y-2">
+                                      {selectedEntry.emotions.map((emotion, idx) => (
+                                        <div key={idx} className={`flex justify-between items-center p-2 rounded border text-sm ${getEmotionColor(emotion.emotion)}`}>
+                                          <span>{emotion.emotion}</span>
+                                          <span className="font-medium">{emotion.intensity}/10</span>
+                                        </div>
+                                      ))}
+                                    </div>
                                   </div>
-                                ))}
-                              </div>
-                            </div>
-                          </div>
-                          
-                          <div className="text-center mt-3 p-2 bg-white rounded border">
-                            <span className="text-sm font-bold text-blue-600">
-                              改善度: {Math.round((selectedEntry.emotions.reduce((sum, e) => sum + e.intensity, 0) / selectedEntry.emotions.length - 
-                                       selectedEntry.newEmotions.reduce((sum, e) => sum + e.intensity, 0) / selectedEntry.newEmotions.length) * 10) / 10} ポイント
-                            </span>
-                          </div>
+                                  
+                                  <div>
+                                    <h4 className="text-xs font-medium text-gray-600 mb-2">適応思考後</h4>
+                                    <div className="space-y-2">
+                                      {selectedEntry.newEmotions.map((emotion, idx) => (
+                                        <div key={idx} className={`flex justify-between items-center p-2 rounded border text-sm ${getEmotionColor(emotion.emotion)}`}>
+                                          <span>{emotion.emotion}</span>
+                                          <span className="font-medium">{emotion.intensity}/10</span>
+                                        </div>
+                                      ))}
+                                    </div>
+                                  </div>
+                                </div>
+                                
+                                {/* 感情分類別の分析 */}
+                                <div className="bg-white p-3 rounded border">
+                                  <h5 className="text-xs font-medium text-gray-600 mb-2">感情分類別の変化</h5>
+                                  <div className="grid grid-cols-2 gap-3 text-xs">
+                                    <div>
+                                      <div className="flex items-center mb-1">
+                                        <TrendingDown className="h-3 w-3 text-red-500 mr-1" />
+                                        <span className="font-medium text-red-700">ネガティブ感情</span>
+                                      </div>
+                                      <div className="text-xs text-gray-600 space-y-1">
+                                        <div>前: {originalCategorized.negative.length > 0 
+                                          ? Math.round(originalCategorized.negative.reduce((sum, e) => sum + e.intensity, 0) / originalCategorized.negative.length * 10) / 10 
+                                          : 0} 点</div>
+                                        <div>後: {newCategorized.negative.length > 0 
+                                          ? Math.round(newCategorized.negative.reduce((sum, e) => sum + e.intensity, 0) / newCategorized.negative.length * 10) / 10 
+                                          : 0} 点</div>
+                                        <div className={`font-medium ${improvement.negativeImprovement > 0 ? 'text-green-600' : improvement.negativeImprovement < 0 ? 'text-red-600' : 'text-gray-600'}`}>
+                                          {improvement.negativeImprovement > 0 ? '↓' : improvement.negativeImprovement < 0 ? '↑' : '→'} 
+                                          {Math.abs(improvement.negativeImprovement)} 点変化
+                                        </div>
+                                      </div>
+                                    </div>
+                                    
+                                    <div>
+                                      <div className="flex items-center mb-1">
+                                        <TrendingUp className="h-3 w-3 text-green-500 mr-1" />
+                                        <span className="font-medium text-green-700">ポジティブ感情</span>
+                                      </div>
+                                      <div className="text-xs text-gray-600 space-y-1">
+                                        <div>前: {originalCategorized.positive.length > 0 
+                                          ? Math.round(originalCategorized.positive.reduce((sum, e) => sum + e.intensity, 0) / originalCategorized.positive.length * 10) / 10 
+                                          : 0} 点</div>
+                                        <div>後: {newCategorized.positive.length > 0 
+                                          ? Math.round(newCategorized.positive.reduce((sum, e) => sum + e.intensity, 0) / newCategorized.positive.length * 10) / 10 
+                                          : 0} 点</div>
+                                        <div className={`font-medium ${improvement.positiveIncrease > 0 ? 'text-green-600' : improvement.positiveIncrease < 0 ? 'text-red-600' : 'text-gray-600'}`}>
+                                          {improvement.positiveIncrease > 0 ? '↑' : improvement.positiveIncrease < 0 ? '↓' : '→'} 
+                                          {Math.abs(improvement.positiveIncrease)} 点変化
+                                        </div>
+                                      </div>
+                                    </div>
+                                  </div>
+                                </div>
+                                
+                                {/* 総合改善度 */}
+                                <div className="bg-white p-3 rounded border border-l-4 border-l-blue-500">
+                                  <div className="flex items-center justify-between">
+                                    <div>
+                                      <h6 className="text-xs font-medium text-gray-700">総合改善度</h6>
+                                      <p className="text-xs text-gray-600">ネガティブ軽減 + ポジティブ増加</p>
+                                    </div>
+                                    <div className="text-right">
+                                      <div className={`text-lg font-bold ${
+                                        improvement.overallImprovement >= 1.5 ? 'text-green-600' : 
+                                        improvement.overallImprovement >= 0.5 ? 'text-blue-600' : 
+                                        improvement.overallImprovement >= -0.5 ? 'text-gray-600' : 'text-red-600'
+                                      }`}>
+                                        {improvement.overallImprovement > 0 ? '+' : ''}{improvement.overallImprovement}
+                                      </div>
+                                      <div className={`text-xs font-medium ${
+                                        improvement.overallImprovement >= 1.5 ? 'text-green-600' : 
+                                        improvement.overallImprovement >= 0.5 ? 'text-blue-600' : 
+                                        improvement.overallImprovement >= -0.5 ? 'text-gray-600' : 'text-red-600'
+                                      }`}>
+                                        {improvement.improvementDescription}
+                                      </div>
+                                    </div>
+                                  </div>
+                                </div>
+                              </>
+                            );
+                          })()}
                         </div>
                       ) : (
                         <div className="flex justify-between items-center mb-2">

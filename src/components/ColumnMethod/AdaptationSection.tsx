@@ -1,7 +1,13 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import { Lightbulb, Scale, TrendingUp, Plus, X } from 'lucide-react';
+import { Lightbulb, Scale, TrendingUp, Plus, X, BarChart3, TrendingDown } from 'lucide-react';
 import { AdaptationSection as AdaptationData, ColumnEntry, EmotionEntry } from '../../types';
+import { 
+  classifyEmotion, 
+  calculateImprovement, 
+  getEmotionColor,
+  categorizeEmotions 
+} from '../../utils/emotionClassification';
 
 interface AdaptationSectionProps {
   data: AdaptationData;
@@ -320,49 +326,116 @@ const AdaptationSection: React.FC<AdaptationSectionProps> = ({ data, onUpdate, o
             className="bg-gradient-to-r from-blue-50 to-green-50 p-6 rounded-xl border border-blue-200"
           >
             <h4 className="text-lg font-semibold text-blue-700 mb-4 flex items-center">
-              📊 感情の変化を比較
+              <BarChart3 className="h-5 w-5 mr-2" />
+              感情の変化分析
             </h4>
             
-            <div className="grid md:grid-cols-2 gap-6">
-              <div>
-                <h5 className="font-medium text-gray-700 mb-3">適応思考前</h5>
-                <div className="space-y-2">
-                  {originalEmotions.map((emotion, idx) => (
-                    <div key={idx} className="flex justify-between items-center p-2 bg-red-100 rounded">
-                      <span className="text-red-800">{emotion.emotion}</span>
-                      <span className="text-red-600 font-medium">{emotion.intensity}/10</span>
-                    </div>
-                  ))}
-                </div>
-                <div className="mt-2 text-sm text-gray-600">
-                  平均強度: {Math.round(originalEmotions.reduce((sum, e) => sum + e.intensity, 0) / originalEmotions.length * 10) / 10}
-                </div>
-              </div>
+            {(() => {
+              const originalCategorized = categorizeEmotions(originalEmotions);
+              const newCategorized = categorizeEmotions(data.newEmotions);
+              const improvement = calculateImprovement(originalEmotions, data.newEmotions);
               
-              <div>
-                <h5 className="font-medium text-gray-700 mb-3">適応思考後</h5>
-                <div className="space-y-2">
-                  {data.newEmotions.map((emotion, idx) => (
-                    <div key={idx} className="flex justify-between items-center p-2 bg-green-100 rounded">
-                      <span className="text-green-800">{emotion.emotion}</span>
-                      <span className="text-green-600 font-medium">{emotion.intensity}/10</span>
+              return (
+                <div className="space-y-6">
+                  {/* 感情の比較 */}
+                  <div className="grid md:grid-cols-2 gap-6">
+                    <div>
+                      <h5 className="font-medium text-gray-700 mb-3">適応思考前</h5>
+                      <div className="space-y-2">
+                        {originalEmotions.map((emotion, idx) => (
+                          <div key={idx} className={`flex justify-between items-center p-2 rounded border ${getEmotionColor(emotion.emotion)}`}>
+                            <span>{emotion.emotion}</span>
+                            <span className="font-medium">{emotion.intensity}/10</span>
+                          </div>
+                        ))}
+                      </div>
                     </div>
-                  ))}
-                </div>
-                <div className="mt-2 text-sm text-gray-600">
-                  平均強度: {Math.round(data.newEmotions.reduce((sum, e) => sum + e.intensity, 0) / data.newEmotions.length * 10) / 10}
-                </div>
-              </div>
-            </div>
+                    
+                    <div>
+                      <h5 className="font-medium text-gray-700 mb-3">適応思考後</h5>
+                      <div className="space-y-2">
+                        {data.newEmotions.map((emotion, idx) => (
+                          <div key={idx} className={`flex justify-between items-center p-2 rounded border ${getEmotionColor(emotion.emotion)}`}>
+                            <span>{emotion.emotion}</span>
+                            <span className="font-medium">{emotion.intensity}/10</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
 
-            <div className="mt-4 p-3 bg-white rounded-lg border">
-              <div className="text-center">
-                <span className="text-lg font-bold text-blue-600">
-                  改善度: {Math.round((originalEmotions.reduce((sum, e) => sum + e.intensity, 0) / originalEmotions.length - 
-                           data.newEmotions.reduce((sum, e) => sum + e.intensity, 0) / data.newEmotions.length) * 10) / 10} ポイント
-                </span>
-              </div>
-            </div>
+                  {/* 感情分類別の分析 */}
+                  <div className="bg-white p-4 rounded-lg border">
+                    <h6 className="font-medium text-gray-700 mb-3">感情分類別の変化</h6>
+                    <div className="grid md:grid-cols-2 gap-4">
+                      <div>
+                        <div className="flex items-center mb-2">
+                          <TrendingDown className="h-4 w-4 text-red-500 mr-1" />
+                          <span className="text-sm font-medium text-red-700">ネガティブ感情</span>
+                        </div>
+                        <div className="text-xs text-gray-600 space-y-1">
+                          <div>前: {originalCategorized.negative.length > 0 
+                            ? Math.round(originalCategorized.negative.reduce((sum, e) => sum + e.intensity, 0) / originalCategorized.negative.length * 10) / 10 
+                            : 0} 点</div>
+                          <div>後: {newCategorized.negative.length > 0 
+                            ? Math.round(newCategorized.negative.reduce((sum, e) => sum + e.intensity, 0) / newCategorized.negative.length * 10) / 10 
+                            : 0} 点</div>
+                          <div className={`font-medium ${improvement.negativeImprovement > 0 ? 'text-green-600' : improvement.negativeImprovement < 0 ? 'text-red-600' : 'text-gray-600'}`}>
+                            {improvement.negativeImprovement > 0 ? '↓' : improvement.negativeImprovement < 0 ? '↑' : '→'} 
+                            {Math.abs(improvement.negativeImprovement)} 点変化
+                          </div>
+                        </div>
+                      </div>
+                      
+                      <div>
+                        <div className="flex items-center mb-2">
+                          <TrendingUp className="h-4 w-4 text-green-500 mr-1" />
+                          <span className="text-sm font-medium text-green-700">ポジティブ感情</span>
+                        </div>
+                        <div className="text-xs text-gray-600 space-y-1">
+                          <div>前: {originalCategorized.positive.length > 0 
+                            ? Math.round(originalCategorized.positive.reduce((sum, e) => sum + e.intensity, 0) / originalCategorized.positive.length * 10) / 10 
+                            : 0} 点</div>
+                          <div>後: {newCategorized.positive.length > 0 
+                            ? Math.round(newCategorized.positive.reduce((sum, e) => sum + e.intensity, 0) / newCategorized.positive.length * 10) / 10 
+                            : 0} 点</div>
+                          <div className={`font-medium ${improvement.positiveIncrease > 0 ? 'text-green-600' : improvement.positiveIncrease < 0 ? 'text-red-600' : 'text-gray-600'}`}>
+                            {improvement.positiveIncrease > 0 ? '↑' : improvement.positiveIncrease < 0 ? '↓' : '→'} 
+                            {Math.abs(improvement.positiveIncrease)} 点変化
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* 総合改善度 */}
+                  <div className="bg-white p-4 rounded-lg border border-l-4 border-l-blue-500">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <h6 className="font-medium text-gray-700">総合改善度</h6>
+                        <p className="text-sm text-gray-600">ネガティブ感情の軽減とポジティブ感情の増加を総合評価</p>
+                      </div>
+                      <div className="text-right">
+                        <div className={`text-2xl font-bold ${
+                          improvement.overallImprovement >= 1.5 ? 'text-green-600' : 
+                          improvement.overallImprovement >= 0.5 ? 'text-blue-600' : 
+                          improvement.overallImprovement >= -0.5 ? 'text-gray-600' : 'text-red-600'
+                        }`}>
+                          {improvement.overallImprovement > 0 ? '+' : ''}{improvement.overallImprovement}
+                        </div>
+                        <div className={`text-sm font-medium ${
+                          improvement.overallImprovement >= 1.5 ? 'text-green-600' : 
+                          improvement.overallImprovement >= 0.5 ? 'text-blue-600' : 
+                          improvement.overallImprovement >= -0.5 ? 'text-gray-600' : 'text-red-600'
+                        }`}>
+                          {improvement.improvementDescription}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              );
+            })()}
           </motion.div>
         )}
       </div>

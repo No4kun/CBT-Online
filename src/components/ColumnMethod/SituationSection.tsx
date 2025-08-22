@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Calendar, Clock, Heart, Plus, X } from 'lucide-react';
 import { EmotionEntry } from '../../types';
+import { getEmotionColor } from '../../utils/emotionClassification';
 
 interface SituationSectionProps {
   data: {
@@ -240,10 +241,10 @@ const SituationSection: React.FC<SituationSectionProps> = ({ data, onChange }) =
         {data.emotions.map((emotion, index) => (
           <div
             key={`${emotion.emotion}-${index}`}
-            className="bg-gray-50 p-4 rounded-lg border"
+            className={`p-4 rounded-lg border ${getEmotionColor(emotion.emotion)}`}
           >
             <div className="flex justify-between items-center mb-3">
-              <h4 className="font-medium text-gray-800">{emotion.emotion}</h4>
+              <h4 className="font-medium">{emotion.emotion}</h4>
               <button
                 onClick={() => removeEmotion(index)}
                 className="text-gray-400 hover:text-red-500 transition-colors duration-200"
