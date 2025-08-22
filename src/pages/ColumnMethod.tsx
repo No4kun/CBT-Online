@@ -75,20 +75,63 @@ const ColumnMethod: React.FC = () => {
   };
 
   const updateEntry = (updates: Partial<ColumnEntry>) => {
-    setEntry(prev => ({ ...prev, ...updates }));
+    console.log('ColumnMethod updateEntry called with:', updates);
+    setEntry(prev => {
+      const newEntry = { ...prev, ...updates };
+      console.log('ColumnMethod entry updated to:', newEntry);
+      return newEntry;
+    });
+  };
+
+  // SituationSection用のデータ変換とコールバック
+  const handleSituationUpdate = (situationData: {
+    date: string;
+    time: string;
+    situation: string;
+    emotions: any[];
+  }) => {
+    console.log('Situation update received:', situationData);
+    // date と time を dateTime に結合
+    const dateTime = situationData.date && situationData.time 
+      ? `${situationData.date}T${situationData.time}`
+      : entry.dateTime || new Date().toISOString().slice(0, 16);
+    
+    updateEntry({
+      dateTime,
+      situation: situationData.situation,
+      emotions: situationData.emotions,
+    });
+  };
+
+  // dateTime を date と time に分割する関数
+  const splitDateTime = (dateTime: string) => {
+    if (!dateTime) {
+      const now = new Date();
+      return {
+        date: now.toISOString().slice(0, 10),
+        time: now.toTimeString().slice(0, 5),
+      };
+    }
+    const [date, time] = dateTime.split('T');
+    return {
+      date: date || new Date().toISOString().slice(0, 10),
+      time: time || new Date().toTimeString().slice(0, 5),
+    };
   };
 
   const renderCurrentSection = () => {
     switch (currentSection) {
       case 'situation':
+        const { date, time } = splitDateTime(entry.dateTime || '');
         return (
           <SituationSection
             data={{
-              dateTime: entry.dateTime || '',
+              date,
+              time,
               situation: entry.situation || '',
               emotions: entry.emotions || [],
             }}
-            onUpdate={updateEntry}
+            onChange={handleSituationUpdate}
           />
         );
       case 'thought':

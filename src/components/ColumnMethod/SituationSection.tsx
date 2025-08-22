@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { Calendar, Clock, Trash2, Heart, Plus } from 'lucide-react';
+import { Calendar, Clock, Heart, Plus, X } from 'lucide-react';
 import { EmotionEntry } from '../../types';
 
 interface SituationSectionProps {
@@ -19,243 +18,272 @@ interface SituationSectionProps {
 }
 
 const SituationSection: React.FC<SituationSectionProps> = ({ data, onChange }) => {
-  const [newEmotion, setNewEmotion] = useState('');
+  const [newEmotionInput, setNewEmotionInput] = useState('');
 
-  const emotionSuggestions = [
-    '不安', '怒り', '悲しみ', '恐怖', '混乱', 
-    '落胆', 'イライラ', '焦り', '孤独', '嫉妬'
+  const predefinedEmotions = [
+    '喜び', '悲しみ', '怒り', '不安', '恐怖', '驚き', 
+    '嫌悪', '恥', '罪悪感', '落胆', 'イライラ', '焦り'
   ];
 
-  const addEmotion = (emotion: string) => {
-    if (emotion.trim() && !data.emotions.some(e => e.emotion === emotion)) {
-      const newEmotionEntry: EmotionEntry = {
-        emotion: emotion.trim(),
-        intensity: 5 // デフォルト値は5
-      };
-      onChange({
-        ...data,
-        emotions: [...data.emotions, newEmotionEntry]
-      });
-      setNewEmotion('');
+  console.log('SituationSection rendered with data:', data);
+
+  // 状況の変更処理
+  const handleSituationChange = (value: string) => {
+    console.log('Updating situation:', value);
+    const newData = {
+      ...data,
+      situation: value
+    };
+    onChange(newData);
+  };
+
+  // 日付の変更処理
+  const handleDateChange = (value: string) => {
+    console.log('Updating date:', value);
+    const newData = {
+      ...data,
+      date: value
+    };
+    onChange(newData);
+  };
+
+  // 時刻の変更処理
+  const handleTimeChange = (value: string) => {
+    console.log('Updating time:', value);
+    const newData = {
+      ...data,
+      time: value
+    };
+    onChange(newData);
+  };
+
+  // 感情追加処理
+  const addEmotion = (emotionName: string) => {
+    console.log('Adding emotion:', emotionName);
+    
+    const trimmedName = emotionName.trim();
+    if (!trimmedName) {
+      console.log('Empty emotion name, not adding');
+      return;
+    }
+    
+    // 重複チェック
+    const exists = data.emotions.some(e => e.emotion === trimmedName);
+    if (exists) {
+      console.log('Emotion already exists:', trimmedName);
+      return;
+    }
+
+    const newEmotion: EmotionEntry = {
+      emotion: trimmedName,
+      intensity: 5
+    };
+
+    const newData = {
+      ...data,
+      emotions: [...data.emotions, newEmotion]
+    };
+    
+    console.log('Updated emotions:', newData.emotions);
+    onChange(newData);
+    setNewEmotionInput('');
+  };
+
+  // 感情削除処理
+  const removeEmotion = (index: number) => {
+    console.log('Removing emotion at index:', index);
+    const newEmotions = data.emotions.filter((_, i) => i !== index);
+    const newData = {
+      ...data,
+      emotions: newEmotions
+    };
+    onChange(newData);
+  };
+
+  // 感情強度更新処理
+  const updateEmotionIntensity = (index: number, intensity: number) => {
+    console.log('Updating emotion intensity:', index, intensity);
+    const newEmotions = [...data.emotions];
+    newEmotions[index] = { ...newEmotions[index], intensity };
+    const newData = {
+      ...data,
+      emotions: newEmotions
+    };
+    onChange(newData);
+  };
+
+  // キーダウンハンドラー
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      console.log('Enter pressed with input:', newEmotionInput);
+      addEmotion(newEmotionInput);
     }
   };
 
-  const removeEmotion = (index: number) => {
-    const newEmotions = data.emotions.filter((_, i) => i !== index);
-    onChange({
-      ...data,
-      emotions: newEmotions
-    });
-  };
-
-  const updateEmotionIntensity = (index: number, intensity: number) => {
-    const newEmotions = [...data.emotions];
-    newEmotions[index] = { ...newEmotions[index], intensity };
-    onChange({
-      ...data,
-      emotions: newEmotions
-    });
-  };
-
-  const getIntensityColor = (intensity: number) => {
-    if (intensity <= 2) return 'from-green-400 to-green-500';
-    if (intensity <= 4) return 'from-yellow-400 to-yellow-500';
-    if (intensity <= 6) return 'from-orange-400 to-orange-500';
-    if (intensity <= 8) return 'from-red-400 to-red-500';
-    return 'from-red-600 to-red-700';
-  };
-
-  const getIntensityLabel = (intensity: number) => {
-    if (intensity <= 2) return '軽い';
-    if (intensity <= 4) return 'やや軽い';
-    if (intensity <= 6) return '中程度';
-    if (intensity <= 8) return 'やや強い';
-    return '非常に強い';
-  };
-
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      className="bg-white rounded-2xl p-6 shadow-lg border border-calm-100"
-    >
-      <h2 className="text-2xl font-bold text-calm-800 mb-6 flex items-center">
-        <Calendar className="h-6 w-6 mr-2" />
-        状況の記録
+    <div className="bg-white rounded-xl shadow-lg p-6 mb-6">
+      <h2 className="text-2xl font-bold text-gray-800 mb-6 text-center">
+        状況と感情
       </h2>
 
-      <div className="space-y-6">
-        {/* 日時入力 */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div>
-            <label className="block text-sm font-medium text-calm-700 mb-2">
-              日付
-            </label>
-            <input
-              type="date"
-              value={data.date}
-              onChange={(e) => onChange({ ...data, date: e.target.value })}
-              className="w-full px-4 py-3 border border-calm-200 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all"
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-calm-700 mb-2">
-              時刻
-            </label>
-            <div className="relative">
-              <Clock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-calm-400" />
-              <input
-                type="time"
-                value={data.time}
-                onChange={(e) => onChange({ ...data, time: e.target.value })}
-                className="w-full pl-10 pr-4 py-3 border border-calm-200 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all"
-              />
-            </div>
-          </div>
-        </div>
-
-        {/* 状況入力 */}
+      {/* 日付と時刻 */}
+      <div className="grid md:grid-cols-2 gap-4 mb-6">
         <div>
-          <label className="block text-sm font-medium text-calm-700 mb-2">
-            状況・出来事
+          <label className="flex items-center text-sm font-medium text-gray-700 mb-2">
+            <Calendar className="h-4 w-4 mr-2" />
+            日付
           </label>
-          <textarea
-            value={data.situation}
-            onChange={(e) => onChange({ ...data, situation: e.target.value })}
-            placeholder="何が起こりましたか？具体的に記録してください..."
-            rows={4}
-            className="w-full px-4 py-3 border border-calm-200 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all resize-none"
+          <input
+            type="date"
+            value={data.date}
+            onChange={(e) => handleDateChange(e.target.value)}
+            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
           />
         </div>
 
-        {/* 感情入力 */}
         <div>
-          <label className="block text-sm font-medium text-calm-700 mb-4">
-            感情
+          <label className="flex items-center text-sm font-medium text-gray-700 mb-2">
+            <Clock className="h-4 w-4 mr-2" />
+            時刻
           </label>
-          
-          {/* 既に追加された感情一覧 */}
-          <AnimatePresence>
-            {data.emotions.map((emotionEntry, index) => (
-              <motion.div
-                key={`${emotionEntry.emotion}-${index}`}
-                initial={{ opacity: 0, scale: 0.95, y: -10 }}
-                animate={{ opacity: 1, scale: 1, y: 0 }}
-                exit={{ opacity: 0, scale: 0.95, y: -10 }}
-                transition={{ duration: 0.2 }}
-                className="mb-4 p-4 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl border border-blue-100"
-              >
-                <div className="flex items-center justify-between mb-3">
-                  <h4 className="font-medium text-blue-800">{emotionEntry.emotion}</h4>
-                  <motion.button
-                    whileHover={{ scale: 1.1 }}
-                    whileTap={{ scale: 0.9 }}
-                    onClick={() => removeEmotion(index)}
-                    className="p-1 text-red-500 hover:bg-red-100 rounded-lg transition-colors"
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </motion.button>
-                </div>
-                
-                <div className="space-y-3">
-                  <div className="flex items-center justify-between text-sm">
-                    <span className="text-blue-600">強さ:</span>
-                    <span className={`px-2 py-1 rounded-lg text-white bg-gradient-to-r ${getIntensityColor(emotionEntry.intensity)}`}>
-                      {emotionEntry.intensity}/10 ({getIntensityLabel(emotionEntry.intensity)})
-                    </span>
-                  </div>
-                  
-                  <div className="relative">
-                    <input
-                      type="range"
-                      min="1"
-                      max="10"
-                      value={emotionEntry.intensity}
-                      onChange={(e) => updateEmotionIntensity(index, parseInt(e.target.value))}
-                      className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer slider"
-                      style={{
-                        background: `linear-gradient(to right, #10b981 0%, #f59e0b 50%, #ef4444 100%)`
-                      }}
-                    />
-                    <div className="flex justify-between text-xs text-gray-500 mt-1">
-                      <span>1 (軽い)</span>
-                      <span>5 (中程度)</span>
-                      <span>10 (非常に強い)</span>
-                    </div>
-                  </div>
-                </div>
-              </motion.div>
-            ))}
-          </AnimatePresence>
+          <input
+            type="time"
+            value={data.time}
+            onChange={(e) => handleTimeChange(e.target.value)}
+            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+          />
+        </div>
+      </div>
 
-          {/* 新しい感情の入力 */}
-          <div className="space-y-4">
-            <div className="flex gap-2">
-              <input
-                type="text"
-                value={newEmotion}
-                onChange={(e) => setNewEmotion(e.target.value)}
-                onKeyPress={(e) => {
-                  if (e.key === 'Enter') {
-                    addEmotion(newEmotion);
-                  }
+      {/* 状況・出来事 */}
+      <div className="mb-6">
+        <label className="block text-sm font-medium text-gray-700 mb-2">
+          状況・出来事
+        </label>
+        <textarea
+          value={data.situation}
+          onChange={(e) => handleSituationChange(e.target.value)}
+          placeholder="どのような状況でしたか？何が起こりましたか？"
+          className="w-full h-32 p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none"
+        />
+        <div className="text-xs text-gray-500 mt-1">
+          現在の文字数: {data.situation.length}
+        </div>
+      </div>
+
+      {/* 感情選択 */}
+      <div className="mb-6">
+        <label className="block text-sm font-medium text-gray-700 mb-3">
+          感情
+        </label>
+        
+        {/* 定義済み感情ボタン */}
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2 mb-4">
+          {predefinedEmotions.map((emotion) => {
+            const isAlreadyAdded = data.emotions.some(e => e.emotion === emotion);
+            return (
+              <button
+                key={emotion}
+                onClick={() => {
+                  console.log('Predefined emotion clicked:', emotion);
+                  addEmotion(emotion);
                 }}
-                placeholder="感情を入力..."
-                className="flex-1 px-4 py-3 border border-calm-200 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all"
-              />
-              <motion.button
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                onClick={() => addEmotion(newEmotion)}
-                disabled={!newEmotion.trim()}
-                className="px-6 py-3 bg-primary-600 text-white rounded-xl hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center"
+                disabled={isAlreadyAdded}
+                className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors duration-200 ${
+                  isAlreadyAdded
+                    ? 'bg-gray-200 text-gray-500 cursor-not-allowed'
+                    : 'bg-blue-100 hover:bg-blue-200 text-blue-800'
+                }`}
               >
-                <Plus className="h-4 w-4" />
-              </motion.button>
-            </div>
+                {emotion} {isAlreadyAdded && '✓'}
+              </button>
+            );
+          })}
+        </div>
 
-            {/* 感情の候補 */}
+        {/* カスタム感情入力 */}
+        <div className="flex gap-2">
+          <input
+            type="text"
+            value={newEmotionInput}
+            onChange={(e) => {
+              console.log('Emotion input change:', e.target.value);
+              setNewEmotionInput(e.target.value);
+            }}
+            onKeyDown={handleKeyDown}
+            placeholder="その他の感情を入力..."
+            className="flex-1 p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+          />
+          <button
+            onClick={() => {
+              console.log('Add button clicked with input:', newEmotionInput);
+              addEmotion(newEmotionInput);
+            }}
+            disabled={!newEmotionInput.trim()}
+            className="px-4 py-3 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white rounded-lg font-medium transition-colors duration-200 flex items-center gap-1"
+          >
+            <Plus className="h-4 w-4" />
+            追加
+          </button>
+        </div>
+      </div>
+
+      {/* 追加された感情と強度設定 */}
+      <div className="space-y-4">
+        {data.emotions.length > 0 && (
+          <h3 className="text-lg font-medium text-gray-700 mb-3">
+            追加された感情 ({data.emotions.length}個)
+          </h3>
+        )}
+        
+        {data.emotions.map((emotion, index) => (
+          <div
+            key={`${emotion.emotion}-${index}`}
+            className="bg-gray-50 p-4 rounded-lg border"
+          >
+            <div className="flex justify-between items-center mb-3">
+              <h4 className="font-medium text-gray-800">{emotion.emotion}</h4>
+              <button
+                onClick={() => removeEmotion(index)}
+                className="text-gray-400 hover:text-red-500 transition-colors duration-200"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+            
             <div className="space-y-2">
-              <p className="text-sm text-calm-600">候補から選択:</p>
-              <div className="flex flex-wrap gap-2">
-                {emotionSuggestions.map((emotion) => {
-                  const isAlreadyAdded = data.emotions.some(e => e.emotion === emotion);
-                  return (
-                    <motion.button
-                      key={emotion}
-                      whileHover={{ scale: 1.05 }}
-                      whileTap={{ scale: 0.95 }}
-                      onClick={() => addEmotion(emotion)}
-                      disabled={isAlreadyAdded}
-                      className={`px-3 py-1 text-sm rounded-lg transition-colors ${
-                        isAlreadyAdded
-                          ? 'bg-calm-100 text-calm-400 cursor-not-allowed'
-                          : 'bg-red-50 text-red-600 hover:bg-red-100'
-                      }`}
-                    >
-                      {emotion}
-                    </motion.button>
-                  );
-                })}
+              <div className="flex justify-between items-center">
+                <span className="text-sm text-gray-600">強度 (1-10)</span>
+                <span className="text-sm font-medium text-blue-600">{emotion.intensity}/10</span>
+              </div>
+              <input
+                type="range"
+                min="1"
+                max="10"
+                value={emotion.intensity}
+                onChange={(e) => updateEmotionIntensity(index, parseInt(e.target.value))}
+                className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
+              />
+              <div className="flex justify-between text-xs text-gray-500">
+                <span>1 (軽い)</span>
+                <span>5 (中程度)</span>
+                <span>10 (非常に強い)</span>
               </div>
             </div>
           </div>
+        ))}
 
-          {/* 感情が未入力の場合のメッセージ */}
-          {data.emotions.length === 0 && (
-            <motion.div
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="text-center p-6 bg-calm-50 rounded-xl border border-calm-200"
-            >
-              <Heart className="h-8 w-8 text-calm-400 mx-auto mb-2" />
-              <p className="text-calm-600">まだ感情が追加されていません</p>
-              <p className="text-sm text-calm-500 mt-1">上記の候補から選択するか、直接入力してください</p>
-            </motion.div>
-          )}
-        </div>
+        {/* 感情未追加時のメッセージ */}
+        {data.emotions.length === 0 && (
+          <div className="text-center p-6 bg-gray-50 rounded-lg border-2 border-dashed border-gray-300">
+            <Heart className="h-8 w-8 text-gray-400 mx-auto mb-2" />
+            <p className="text-gray-600">まだ感情が追加されていません</p>
+            <p className="text-sm text-gray-500 mt-1">上記の候補から選択するか、直接入力してください</p>
+          </div>
+        )}
       </div>
-    </motion.div>
+    </div>
   );
 };
 
