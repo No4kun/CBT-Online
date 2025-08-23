@@ -46,7 +46,7 @@ export interface ActivityRecord {
   updatedAt: Date;
 }
 
-export type ActivityColorType = 'orange' | 'yellow' | 'red' | 'blue' | 'green' | 'purple' | 'black';
+export type ActivityColorType = 'red' | 'orange' | 'yellow' | 'blue' | 'purple';
 
 // セクション型定義
 export type SectionType = 'situation' | 'thought' | 'adaptation';

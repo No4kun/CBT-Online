@@ -198,20 +198,18 @@ const ActivityTracker: React.FC<ActivityTrackerProps> = ({
           exit={{ opacity: 0, height: 0 }}
           className="bg-gradient-to-r from-blue-50 to-purple-50 rounded-xl shadow-sm border p-6"
         >
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">色分けガイド</h3>
-          <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-3">
+          <h3 className="text-lg font-semibold text-gray-900 mb-4">色分けガイド（P+A合計点）</h3>
+          <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-3">
             {[
-              { color: 'red', condition: 'P≥8 & A≥8' },
-              { color: 'orange', condition: 'P≥8 & A≤7' },
-              { color: 'yellow', condition: 'P≤7 & A≥8' },
-              { color: 'blue', condition: 'P≤2 & A≥2' },
-              { color: 'green', condition: 'P≥3 & A≤1' },
-              { color: 'purple', condition: 'P≤2 & A≤1' },
-              { color: 'black', condition: 'その他' }
-            ].map(({ color, condition }) => (
+              { color: 'red', range: '16〜20点', label: '非常にポジティブ' },
+              { color: 'orange', range: '11〜15点', label: 'ポジティブ' },
+              { color: 'yellow', range: '6〜10点', label: 'ニュートラル' },
+              { color: 'blue', range: '3〜5点', label: 'ややネガティブ' },
+              { color: 'purple', range: '0〜2点', label: '非常にネガティブ' }
+            ].map(({ color, range, label }) => (
               <div key={color} className={`p-3 rounded-lg border ${getActivityColorClass(color as any)}`}>
-                <div className="text-sm font-medium">{condition}</div>
-                <div className="text-xs mt-1">{getActivityColorMeaning(color as any)}</div>
+                <div className="text-sm font-medium">{range}</div>
+                <div className="text-xs mt-1">{label}</div>
               </div>
             ))}
           </div>
@@ -227,7 +225,7 @@ const ActivityTracker: React.FC<ActivityTrackerProps> = ({
 
         <div className="p-6 space-y-4">
           {entries.map((entry) => {
-            const color = entry.activity ? getActivityColor(entry.pleasure, entry.achievement) : 'black';
+            const color = entry.activity ? getActivityColor(entry.pleasure, entry.achievement) : null;
             const isActive = activeEntry === entry.id;
             const isFirstOfPair = entry.isHalfHour && entry.halfPosition === 'first';
             const isSecondOfPair = entry.isHalfHour && entry.halfPosition === 'second';
@@ -238,7 +236,7 @@ const ActivityTracker: React.FC<ActivityTrackerProps> = ({
                 layout
                 className={`border rounded-lg p-4 transition-all duration-200 ${
                   isActive ? 'ring-2 ring-blue-500 border-blue-300' : 'border-gray-200 hover:border-gray-300'
-                } ${entry.activity ? getActivityColorClass(color) : ''} ${
+                } ${color ? getActivityColorClass(color) : 'bg-gray-50'} ${
                   isFirstOfPair ? 'border-b-0 rounded-b-none' : ''
                 } ${
                   isSecondOfPair ? 'border-t-0 rounded-t-none' : ''
@@ -365,10 +363,13 @@ const ActivityTracker: React.FC<ActivityTrackerProps> = ({
                   </div>
                 </div>
 
-                {entry.activity && (
+                {entry.activity && color && (
                   <div className="mt-3 pt-3 border-t border-gray-200">
                     <div className="text-xs text-gray-600">
                       分類: <span className="font-medium">{getActivityColorMeaning(color)}</span>
+                      <span className="ml-2 text-gray-500">
+                        (P+A: {entry.pleasure + entry.achievement}点)
+                      </span>
                     </div>
                   </div>
                 )}

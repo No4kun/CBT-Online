@@ -32,27 +32,25 @@ export const generateTimeSlots = (): string[] => {
   return slots;
 };
 
-// PA値に基づく色分類
+// P+A合計値に基づく色分類（5段階システム）
 export const getActivityColor = (pleasure: number, achievement: number): ActivityColorType => {
-  if (pleasure >= 8 && achievement <= 7) return 'orange';
-  if (pleasure <= 7 && achievement >= 8) return 'yellow';
-  if (pleasure >= 8 && achievement >= 8) return 'red';
-  if (pleasure <= 2 && achievement >= 2) return 'blue';
-  if (pleasure >= 3 && achievement <= 1) return 'green';
-  if (pleasure <= 2 && achievement <= 1) return 'purple';
-  return 'black';
+  const total = pleasure + achievement;
+  
+  if (total >= 16) return 'red';      // 16〜20点: 非常にポジティブ
+  if (total >= 11) return 'orange';   // 11〜15点: ポジティブ  
+  if (total >= 6) return 'yellow';    // 6〜10点: ニュートラル
+  if (total >= 3) return 'blue';      // 3〜5点: ややネガティブ
+  return 'purple';                    // 0〜2点: 非常にネガティブ
 };
 
 // 色に対応するCSSクラス
 export const getActivityColorClass = (color: ActivityColorType): string => {
   const colorMap: Record<ActivityColorType, string> = {
+    red: 'bg-red-100 text-red-800 border-red-200',
     orange: 'bg-orange-100 text-orange-800 border-orange-200',
     yellow: 'bg-yellow-100 text-yellow-800 border-yellow-200',
-    red: 'bg-red-100 text-red-800 border-red-200',
     blue: 'bg-blue-100 text-blue-800 border-blue-200',
-    green: 'bg-green-100 text-green-800 border-green-200',
-    purple: 'bg-purple-100 text-purple-800 border-purple-200',
-    black: 'bg-gray-100 text-gray-800 border-gray-200'
+    purple: 'bg-purple-100 text-purple-800 border-purple-200'
   };
   return colorMap[color];
 };
@@ -60,13 +58,11 @@ export const getActivityColorClass = (color: ActivityColorType): string => {
 // 色の意味説明
 export const getActivityColorMeaning = (color: ActivityColorType): string => {
   const meaningMap: Record<ActivityColorType, string> = {
-    orange: '楽しいが達成感は低い',
-    yellow: '達成感は高いが楽しさは普通',
-    red: '楽しくて達成感も高い',
-    blue: '楽しくないが多少の達成感',
-    green: '多少楽しいが達成感なし',
-    purple: '楽しくなく達成感もない',
-    black: 'バランス型'
+    red: '非常にポジティブ (P+A: 16〜20点)',
+    orange: 'ポジティブ (P+A: 11〜15点)',
+    yellow: 'ニュートラル (P+A: 6〜10点)',
+    blue: 'ややネガティブ (P+A: 3〜5点)',
+    purple: '非常にネガティブ (P+A: 0〜2点)'
   };
   return meaningMap[color];
 };
@@ -74,7 +70,7 @@ export const getActivityColorMeaning = (color: ActivityColorType): string => {
 // 活動記録の分析
 export const analyzeActivityRecord = (record: ActivityRecord): ActivityAnalysis => {
   const colorDistribution: Record<ActivityColorType, number> = {
-    orange: 0, yellow: 0, red: 0, blue: 0, green: 0, purple: 0, black: 0
+    red: 0, orange: 0, yellow: 0, blue: 0, purple: 0
   };
 
   let maxPleasure = 0;
