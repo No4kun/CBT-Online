@@ -65,16 +65,22 @@ export const emotionDatabase: EmotionClassification[] = [
   { emotion: '愛情', type: 'positive', category: 'その他' },
   { emotion: '理解', type: 'positive', category: 'その他' },
   { emotion: '決意', type: 'positive', category: 'その他' },
-  { emotion: '反省', type: 'positive', category: 'その他' },
   
-  // 軽減されたネガティブ感情（改善を示す）
-  { emotion: '軽い不安', type: 'negative', category: '恐怖系' },
-  { emotion: '軽い悲しみ', type: 'negative', category: '悲しみ系' },
-  { emotion: '軽い怒り', type: 'negative', category: '怒り系' },
-  { emotion: '軽い恐怖', type: 'negative', category: '恐怖系' },
-  { emotion: '軽い焦り', type: 'negative', category: '恐怖系' },
-  { emotion: '軽い落胆', type: 'negative', category: '悲しみ系' },
-  { emotion: '軽い罪悪感', type: 'negative', category: '自己否定系' },
+  // 成長系
+  { emotion: '成長感', type: 'positive', category: '成長系' },
+  { emotion: '学び', type: 'positive', category: '成長系' },
+  { emotion: '気づき', type: 'positive', category: '成長系' },
+  { emotion: '克服感', type: 'positive', category: '成長系' },
+  
+  // 活動系  
+  { emotion: 'やる気', type: 'positive', category: '活動系' },
+  { emotion: '集中', type: 'positive', category: '活動系' },
+  { emotion: '興味', type: 'positive', category: '活動系' },
+  
+  // 勇気系
+  { emotion: '勇気', type: 'positive', category: '勇気系' },
+  { emotion: '忍耐', type: 'positive', category: '勇気系' },
+  { emotion: '充実感', type: 'positive', category: '勇気系' },
 ];
 
 // 感情の分類を取得する関数
@@ -102,7 +108,8 @@ export const classifyEmotion = (emotionName: string): EmotionType => {
     '安心', '平静', '落ち着', 'リラックス', '解放',
     '希望', '期待', '楽観', '前向き',
     '自信', '誇り', '達成', '自己受容',
-    '感謝', '愛', '理解', '決意', '反省'
+    '感謝', '愛', '理解', '決意', '反省',
+    'やる気', '興味', '好奇心', '創造性', '勇気'
   ];
   
   // キーワードマッチング
@@ -190,7 +197,7 @@ export const calculateImprovement = (
   // ポジティブ感情の増加度（増加が良い）
   const positiveIncrease = newPositiveAvg - originalPositiveAvg;
   
-  // 総合改善度（重み付き）
+  // 総合改善度（シンプルな計算）
   const overallImprovement = (negativeImprovement * 0.6) + (positiveIncrease * 0.4);
   
   // 改善度の説明

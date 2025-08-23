@@ -1,13 +1,13 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import { Lightbulb, Scale, TrendingUp, Plus, X, BarChart3, TrendingDown } from 'lucide-react';
+import { Lightbulb, Scale, TrendingUp, Plus, BarChart3, TrendingDown } from 'lucide-react';
 import { AdaptationSection as AdaptationData, ColumnEntry, EmotionEntry } from '../../types';
 import { 
-  classifyEmotion, 
   calculateImprovement, 
   getEmotionColor,
-  categorizeEmotions 
+  categorizeEmotions
 } from '../../utils/emotionClassification';
+import EmotionClassificationDropZone from '../ui/EmotionClassificationDropZone';
 
 interface AdaptationSectionProps {
   data: AdaptationData;
@@ -17,6 +17,7 @@ interface AdaptationSectionProps {
 
 const AdaptationSection: React.FC<AdaptationSectionProps> = ({ data, onUpdate, originalEmotions = [] }) => {
   const [newEmotionInput, setNewEmotionInput] = useState('');
+  const [unclassifiedEmotions, setUnclassifiedEmotions] = useState<string[]>([]);
 
   const counterEvidencePrompts = [
     'この考えと矛盾する事実はあるか？',
@@ -36,54 +37,44 @@ const AdaptationSection: React.FC<AdaptationSectionProps> = ({ data, onUpdate, o
   ];
 
   const predefinedEmotions = [
-    '安心', '希望', '満足', '平静', '自信', '解放感',
-    '軽い不安', '軽い悲しみ', '軽い怒り', '軽い恐怖', '軽い焦り', '軽い落胆'
+    // 喜び系
+    '喜び', '幸せ', '楽しさ', '満足',
+    // 平静系
+    '安心', '平静', 'リラックス', '解放感',
+    // 希望系
+    '希望', '期待', '楽観', '前向き',
+    // 自己肯定系
+    '自信', '誇り', '達成感', '自己受容',
+    // 成長系
+    '成長感', '学び', '気づき', '克服感',
+    // 活動系
+    'やる気', '集中', '興味', '創造性'
   ];
 
-  // 新しい感情追加処理
+  // 新しい感情追加処理（未分類リストに追加）
   const addNewEmotion = (emotionName: string) => {
     const trimmedName = emotionName.trim();
     if (!trimmedName) return;
     
-    // 重複チェック
-    const exists = data.newEmotions?.some(e => e.emotion === trimmedName);
-    if (exists) return;
+    // 重複チェック（既存の感情と未分類リストの両方）
+    const existsInEmotions = data.newEmotions?.some(e => e.emotion === trimmedName);
+    const existsInUnclassified = unclassifiedEmotions.includes(trimmedName);
+    
+    if (existsInEmotions || existsInUnclassified) return;
 
-    const newEmotion: EmotionEntry = {
-      emotion: trimmedName,
-      intensity: 5
-    };
-
-    const updatedNewEmotions = [...(data.newEmotions || []), newEmotion];
-    onUpdate({ newEmotions: updatedNewEmotions });
+    // 未分類リストに追加
+    setUnclassifiedEmotions(prev => [...prev, trimmedName]);
     setNewEmotionInput('');
   };
 
-  // 感情削除処理
-  const removeNewEmotion = (index: number) => {
-    const updatedNewEmotions = data.newEmotions?.filter((_, i) => i !== index) || [];
-    onUpdate({ newEmotions: updatedNewEmotions });
+  // 未分類感情の削除
+  const removeUnclassifiedEmotion = (emotion: string) => {
+    setUnclassifiedEmotions(prev => prev.filter(e => e !== emotion));
   };
 
-  // 感情強度更新処理
-  const updateNewEmotionIntensity = (index: number, intensity: number) => {
-    const updatedNewEmotions = [...(data.newEmotions || [])];
-    updatedNewEmotions[index] = { ...updatedNewEmotions[index], intensity };
-    onUpdate({ newEmotions: updatedNewEmotions });
-  };
-
-  // 元の感情を新しい感情にコピー
-  const copyOriginalEmotion = (originalEmotion: EmotionEntry) => {
-    const exists = data.newEmotions?.some(e => e.emotion === originalEmotion.emotion);
-    if (exists) return;
-
-    const newEmotion: EmotionEntry = {
-      emotion: originalEmotion.emotion,
-      intensity: Math.max(1, originalEmotion.intensity - 2) // 強度を2下げる（最低1）
-    };
-
-    const updatedNewEmotions = [...(data.newEmotions || []), newEmotion];
-    onUpdate({ newEmotions: updatedNewEmotions });
+  // 感情の更新（ドロップゾーンから）
+  const handleNewEmotionsUpdate = (updatedEmotions: EmotionEntry[]) => {
+    onUpdate({ newEmotions: updatedEmotions });
   };
 
   return (
@@ -190,13 +181,19 @@ const AdaptationSection: React.FC<AdaptationSectionProps> = ({ data, onUpdate, o
         {originalEmotions.length > 0 && (
           <div className="space-y-3">
             <h4 className="text-sm font-medium text-gray-700">元の感情から選択（強度を調整）</h4>
+            <p className="text-xs text-gray-600">💡 元の感情をそのまま引き継いで、強度を調整できます</p>
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2">
               {originalEmotions.map((emotion) => {
-                const isAlreadyAdded = data.newEmotions?.some(e => e.emotion === emotion.emotion);
+                const isAlreadyAdded = data.newEmotions?.some(e => e.emotion === emotion.emotion) || unclassifiedEmotions.includes(emotion.emotion);
+                
                 return (
                   <button
                     key={emotion.emotion}
-                    onClick={() => copyOriginalEmotion(emotion)}
+                    onClick={() => {
+                      if (!isAlreadyAdded) {
+                        setUnclassifiedEmotions(prev => [...prev, emotion.emotion]);
+                      }
+                    }}
                     disabled={isAlreadyAdded}
                     className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors duration-200 ${
                       isAlreadyAdded
@@ -219,7 +216,7 @@ const AdaptationSection: React.FC<AdaptationSectionProps> = ({ data, onUpdate, o
           {/* 定義済み感情ボタン */}
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2 mb-4">
             {predefinedEmotions.map((emotion) => {
-              const isAlreadyAdded = data.newEmotions?.some(e => e.emotion === emotion);
+              const isAlreadyAdded = data.newEmotions?.some(e => e.emotion === emotion) || unclassifiedEmotions.includes(emotion);
               return (
                 <button
                   key={emotion}
@@ -263,60 +260,14 @@ const AdaptationSection: React.FC<AdaptationSectionProps> = ({ data, onUpdate, o
           </div>
         </div>
 
-        {/* 追加された新しい感情と強度設定 */}
-        <div className="space-y-4">
-          {data.newEmotions && data.newEmotions.length > 0 && (
-            <h4 className="text-sm font-medium text-gray-700">
-              適応思考後の感情 ({data.newEmotions.length}個)
-            </h4>
-          )}
-          
-          {data.newEmotions?.map((emotion, index) => (
-            <div
-              key={`${emotion.emotion}-${index}`}
-              className="bg-green-50 p-4 rounded-lg border border-green-200"
-            >
-              <div className="flex justify-between items-center mb-3">
-                <h5 className="font-medium text-gray-800">{emotion.emotion}</h5>
-                <button
-                  onClick={() => removeNewEmotion(index)}
-                  className="text-gray-400 hover:text-red-500 transition-colors duration-200"
-                >
-                  <X className="h-4 w-4" />
-                </button>
-              </div>
-              
-              <div className="space-y-2">
-                <div className="flex justify-between items-center">
-                  <span className="text-sm text-gray-600">強度 (1-10)</span>
-                  <span className="text-sm font-medium text-green-600">{emotion.intensity}/10</span>
-                </div>
-                <input
-                  type="range"
-                  min="1"
-                  max="10"
-                  value={emotion.intensity}
-                  onChange={(e) => updateNewEmotionIntensity(index, parseInt(e.target.value))}
-                  className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
-                />
-                <div className="flex justify-between text-xs text-gray-500">
-                  <span>1 (軽い)</span>
-                  <span>5 (中程度)</span>
-                  <span>10 (非常に強い)</span>
-                </div>
-              </div>
-            </div>
-          ))}
-
-          {/* 感情未追加時のメッセージ */}
-          {(!data.newEmotions || data.newEmotions.length === 0) && (
-            <div className="text-center p-6 bg-gray-50 rounded-lg border-2 border-dashed border-gray-300">
-              <TrendingUp className="h-8 w-8 text-gray-400 mx-auto mb-2" />
-              <p className="text-gray-600">適応思考後の感情を記録しましょう</p>
-              <p className="text-sm text-gray-500 mt-1">元の感情をコピーするか、新しい感情を追加してください</p>
-            </div>
-          )}
-        </div>
+        {/* 感情の分類とドラッグ&ドロップ */}
+        <EmotionClassificationDropZone
+          emotions={data.newEmotions || []}
+          onEmotionsUpdate={handleNewEmotionsUpdate}
+          unclassifiedEmotions={unclassifiedEmotions}
+          onUnclassifiedRemove={removeUnclassifiedEmotion}
+          className="mt-6"
+        />
 
         {/* 感情変化の比較表示 */}
         {data.newEmotions && data.newEmotions.length > 0 && originalEmotions.length > 0 && (
@@ -413,7 +364,7 @@ const AdaptationSection: React.FC<AdaptationSectionProps> = ({ data, onUpdate, o
                     <div className="flex items-center justify-between">
                       <div>
                         <h6 className="font-medium text-gray-700">総合改善度</h6>
-                        <p className="text-sm text-gray-600">ネガティブ感情の軽減とポジティブ感情の増加を総合評価</p>
+                        <p className="text-sm text-gray-600">ネガティブ軽減 + ポジティブ増加</p>
                       </div>
                       <div className="text-right">
                         <div className={`text-2xl font-bold ${

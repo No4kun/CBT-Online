@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
-import { Calendar, Clock, Heart, Plus, X } from 'lucide-react';
+import { Calendar, Clock, Plus } from 'lucide-react';
 import { EmotionEntry } from '../../types';
-import { getEmotionColor } from '../../utils/emotionClassification';
+import EmotionClassificationDropZone from '../ui/EmotionClassificationDropZone';
 
 interface SituationSectionProps {
   data: {
@@ -20,6 +20,7 @@ interface SituationSectionProps {
 
 const SituationSection: React.FC<SituationSectionProps> = ({ data, onChange }) => {
   const [newEmotionInput, setNewEmotionInput] = useState('');
+  const [unclassifiedEmotions, setUnclassifiedEmotions] = useState<string[]>([]);
 
   const predefinedEmotions = [
     '喜び', '悲しみ', '怒り', '不安', '恐怖', '驚き', 
@@ -58,7 +59,7 @@ const SituationSection: React.FC<SituationSectionProps> = ({ data, onChange }) =
     onChange(newData);
   };
 
-  // 感情追加処理
+  // 感情追加処理（未分類リストに追加）
   const addEmotion = (emotionName: string) => {
     console.log('Adding emotion:', emotionName);
     
@@ -68,47 +69,30 @@ const SituationSection: React.FC<SituationSectionProps> = ({ data, onChange }) =
       return;
     }
     
-    // 重複チェック
-    const exists = data.emotions.some(e => e.emotion === trimmedName);
-    if (exists) {
+    // 重複チェック（既存の感情と未分類リストの両方）
+    const existsInEmotions = data.emotions.some(e => e.emotion === trimmedName);
+    const existsInUnclassified = unclassifiedEmotions.includes(trimmedName);
+    
+    if (existsInEmotions || existsInUnclassified) {
       console.log('Emotion already exists:', trimmedName);
       return;
     }
 
-    const newEmotion: EmotionEntry = {
-      emotion: trimmedName,
-      intensity: 5
-    };
-
-    const newData = {
-      ...data,
-      emotions: [...data.emotions, newEmotion]
-    };
-    
-    console.log('Updated emotions:', newData.emotions);
-    onChange(newData);
+    // 未分類リストに追加
+    setUnclassifiedEmotions(prev => [...prev, trimmedName]);
     setNewEmotionInput('');
   };
 
-  // 感情削除処理
-  const removeEmotion = (index: number) => {
-    console.log('Removing emotion at index:', index);
-    const newEmotions = data.emotions.filter((_, i) => i !== index);
-    const newData = {
-      ...data,
-      emotions: newEmotions
-    };
-    onChange(newData);
+  // 未分類感情の削除
+  const removeUnclassifiedEmotion = (emotion: string) => {
+    setUnclassifiedEmotions(prev => prev.filter(e => e !== emotion));
   };
 
-  // 感情強度更新処理
-  const updateEmotionIntensity = (index: number, intensity: number) => {
-    console.log('Updating emotion intensity:', index, intensity);
-    const newEmotions = [...data.emotions];
-    newEmotions[index] = { ...newEmotions[index], intensity };
+  // 感情の更新（ドロップゾーンから）
+  const handleEmotionsUpdate = (updatedEmotions: EmotionEntry[]) => {
     const newData = {
       ...data,
-      emotions: newEmotions
+      emotions: updatedEmotions
     };
     onChange(newData);
   };
@@ -230,60 +214,14 @@ const SituationSection: React.FC<SituationSectionProps> = ({ data, onChange }) =
         </div>
       </div>
 
-      {/* 追加された感情と強度設定 */}
-      <div className="space-y-4">
-        {data.emotions.length > 0 && (
-          <h3 className="text-lg font-medium text-gray-700 mb-3">
-            追加された感情 ({data.emotions.length}個)
-          </h3>
-        )}
-        
-        {data.emotions.map((emotion, index) => (
-          <div
-            key={`${emotion.emotion}-${index}`}
-            className={`p-4 rounded-lg border ${getEmotionColor(emotion.emotion)}`}
-          >
-            <div className="flex justify-between items-center mb-3">
-              <h4 className="font-medium">{emotion.emotion}</h4>
-              <button
-                onClick={() => removeEmotion(index)}
-                className="text-gray-400 hover:text-red-500 transition-colors duration-200"
-              >
-                <X className="h-4 w-4" />
-              </button>
-            </div>
-            
-            <div className="space-y-2">
-              <div className="flex justify-between items-center">
-                <span className="text-sm text-gray-600">強度 (1-10)</span>
-                <span className="text-sm font-medium text-blue-600">{emotion.intensity}/10</span>
-              </div>
-              <input
-                type="range"
-                min="1"
-                max="10"
-                value={emotion.intensity}
-                onChange={(e) => updateEmotionIntensity(index, parseInt(e.target.value))}
-                className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
-              />
-              <div className="flex justify-between text-xs text-gray-500">
-                <span>1 (軽い)</span>
-                <span>5 (中程度)</span>
-                <span>10 (非常に強い)</span>
-              </div>
-            </div>
-          </div>
-        ))}
-
-        {/* 感情未追加時のメッセージ */}
-        {data.emotions.length === 0 && (
-          <div className="text-center p-6 bg-gray-50 rounded-lg border-2 border-dashed border-gray-300">
-            <Heart className="h-8 w-8 text-gray-400 mx-auto mb-2" />
-            <p className="text-gray-600">まだ感情が追加されていません</p>
-            <p className="text-sm text-gray-500 mt-1">上記の候補から選択するか、直接入力してください</p>
-          </div>
-        )}
-      </div>
+      {/* 感情の分類とドラッグ&ドロップ */}
+      <EmotionClassificationDropZone
+        emotions={data.emotions}
+        onEmotionsUpdate={handleEmotionsUpdate}
+        unclassifiedEmotions={unclassifiedEmotions}
+        onUnclassifiedRemove={removeUnclassifiedEmotion}
+        className="mt-6"
+      />
     </div>
   );
 };
