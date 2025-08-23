@@ -1,7 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { FileText, BarChart3, Heart, Brain, TrendingUp, Clock } from 'lucide-react';
+import { FileText, BarChart3, Heart, Brain, TrendingUp, Clock, Activity } from 'lucide-react';
 
 const Home: React.FC = () => {
   const features = [
@@ -18,6 +18,13 @@ const Home: React.FC = () => {
       description: '日々の行動パターンを記録して、改善点を見つけましょう',
       color: 'from-secondary-500 to-secondary-600',
       href: '/behavior-record'
+    },
+    {
+      icon: Activity,
+      title: '活動記録',
+      description: '時間ごとの活動とその楽しさ・達成感を記録して分析しましょう',
+      color: 'from-orange-500 to-orange-600',
+      href: '/activity-record'
     },
     {
       icon: Clock,
@@ -79,7 +86,7 @@ const Home: React.FC = () => {
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ duration: 0.6, delay: 0.3 }}
-        className="grid md:grid-cols-3 gap-6"
+        className="grid md:grid-cols-2 lg:grid-cols-4 gap-6"
       >
         {features.map((feature, index) => {
           const Icon = feature.icon;

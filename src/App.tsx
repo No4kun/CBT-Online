@@ -4,6 +4,7 @@ import Header from './components/Layout/Header';
 import Home from './pages/Home';
 import ColumnMethod from './pages/ColumnMethod';
 import BehaviorRecord from './pages/BehaviorRecord';
+import ActivityRecord from './pages/ActivityRecord';
 import History from './pages/History';
 
 function App() {
@@ -21,6 +22,7 @@ function App() {
             <Route path="/" element={<Home />} />
             <Route path="/column-method" element={<ColumnMethod />} />
             <Route path="/behavior-record" element={<BehaviorRecord />} />
+            <Route path="/activity-record" element={<ActivityRecord />} />
             <Route path="/history" element={<History />} />
           </Routes>
         </motion.main>
