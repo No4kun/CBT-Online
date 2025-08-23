@@ -1,6 +1,6 @@
 import React, { useState, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { TrendingUp, TrendingDown, HelpCircle, Trash2 } from 'lucide-react';
+import { TrendingUp, TrendingDown, Trash2 } from 'lucide-react';
 import { EmotionEntry } from '../../types';
 import { classifyEmotion, EmotionType } from '../../utils/emotionClassification';
 
@@ -32,7 +32,6 @@ const EmotionClassificationDropZone: React.FC<EmotionClassificationDropZoneProps
   const categorizeEmotions = () => {
     const negative: EmotionEntry[] = [];
     const positive: EmotionEntry[] = [];
-    const neutral: EmotionEntry[] = [];
 
     emotions.forEach(emotion => {
       const type = classifyEmotion(emotion.emotion);
@@ -43,16 +42,13 @@ const EmotionClassificationDropZone: React.FC<EmotionClassificationDropZoneProps
         case 'positive':
           positive.push(emotion);
           break;
-        case 'neutral':
-          neutral.push(emotion);
-          break;
       }
     });
 
-    return { negative, positive, neutral };
+    return { negative, positive };
   };
 
-  const { negative, positive, neutral } = categorizeEmotions();
+  const { negative, positive } = categorizeEmotions();
 
   // ドラッグ開始
   const handleDragStart = useCallback((e: React.DragEvent, emotion: string, fromZone: EmotionType | 'unclassified', index?: number) => {
@@ -207,7 +203,6 @@ const EmotionClassificationDropZone: React.FC<EmotionClassificationDropZoneProps
       {unclassifiedEmotions.length > 0 && (
         <div className="mb-6">
           <div className="flex items-center mb-3">
-            <HelpCircle className="h-5 w-5 text-gray-500 mr-2" />
             <h3 className="text-lg font-semibold text-gray-700">分類が必要な感情</h3>
           </div>
           <div className="flex flex-wrap gap-2">
@@ -258,20 +253,6 @@ const EmotionClassificationDropZone: React.FC<EmotionClassificationDropZoneProps
           positive
         )}
       </div>
-
-      {/* ニュートラル感情がある場合の表示 */}
-      {neutral.length > 0 && (
-        <div className="mt-4">
-          {renderDropZone(
-            'neutral',
-            'ニュートラル感情',
-            <HelpCircle className="h-5 w-5 text-gray-500" />,
-            'bg-gray-50',
-            'border-gray-300',
-            neutral
-          )}
-        </div>
-      )}
 
       {/* 使用方法のヒント */}
       <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">

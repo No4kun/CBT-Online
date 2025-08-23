@@ -1,6 +1,6 @@
 // 感情の分類とユーティリティ関数
 
-export type EmotionType = 'negative' | 'positive' | 'neutral';
+export type EmotionType = 'negative' | 'positive';
 
 export interface EmotionClassification {
   emotion: string;
@@ -98,8 +98,8 @@ export const classifyEmotion = (emotionName: string): EmotionType => {
     }
   }
   
-  // 判定できない場合はニュートラル
-  return 'neutral';
+  // 判定できない場合はネガティブにデフォルト（ユーザーがドラッグで修正可能）
+  return 'negative';
 };
 
 // カテゴリごとの感情を取得
@@ -113,7 +113,6 @@ export const getEmotionsByCategory = (type: EmotionType): string[] => {
 export const categorizeEmotions = (emotions: Array<{emotion: string, intensity: number}>) => {
   const negative: Array<{emotion: string, intensity: number}> = [];
   const positive: Array<{emotion: string, intensity: number}> = [];
-  const neutral: Array<{emotion: string, intensity: number}> = [];
   
   emotions.forEach(emotion => {
     const type = classifyEmotion(emotion.emotion);
@@ -124,13 +123,10 @@ export const categorizeEmotions = (emotions: Array<{emotion: string, intensity: 
       case 'positive':
         positive.push(emotion);
         break;
-      case 'neutral':
-        neutral.push(emotion);
-        break;
     }
   });
   
-  return { negative, positive, neutral };
+  return { negative, positive };
 };
 
 // 改善度の計算
@@ -203,8 +199,6 @@ export const getEmotionColor = (emotionName: string): string => {
       return 'bg-red-100 text-red-800 border-red-200';
     case 'positive':
       return 'bg-green-100 text-green-800 border-green-200';
-    case 'neutral':
-      return 'bg-gray-100 text-gray-800 border-gray-200';
     default:
       return 'bg-gray-100 text-gray-800 border-gray-200';
   }
