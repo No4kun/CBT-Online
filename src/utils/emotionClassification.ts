@@ -15,72 +15,45 @@ export const emotionDatabase: EmotionClassification[] = [
   { emotion: '恐怖', type: 'negative', category: '恐怖系' },
   { emotion: '心配', type: 'negative', category: '恐怖系' },
   { emotion: '焦り', type: 'negative', category: '恐怖系' },
-  { emotion: 'パニック', type: 'negative', category: '恐怖系' },
   
   { emotion: '怒り', type: 'negative', category: '怒り系' },
   { emotion: 'イライラ', type: 'negative', category: '怒り系' },
   { emotion: '憤り', type: 'negative', category: '怒り系' },
-  { emotion: '苛立ち', type: 'negative', category: '怒り系' },
   
   { emotion: '悲しみ', type: 'negative', category: '悲しみ系' },
   { emotion: '落胆', type: 'negative', category: '悲しみ系' },
   { emotion: '絶望', type: 'negative', category: '悲しみ系' },
-  { emotion: '憂鬱', type: 'negative', category: '悲しみ系' },
   { emotion: '孤独', type: 'negative', category: '悲しみ系' },
   
   { emotion: '恥', type: 'negative', category: '自己否定系' },
   { emotion: '罪悪感', type: 'negative', category: '自己否定系' },
   { emotion: '劣等感', type: 'negative', category: '自己否定系' },
-  { emotion: '嫌悪', type: 'negative', category: '自己否定系' },
   { emotion: '自己嫌悪', type: 'negative', category: '自己否定系' },
   
   { emotion: '混乱', type: 'negative', category: 'その他' },
-  { emotion: '驚き', type: 'negative', category: 'その他' },
-  { emotion: 'ショック', type: 'negative', category: 'その他' },
   
   // ポジティブ感情
   { emotion: '喜び', type: 'positive', category: '喜び系' },
   { emotion: '幸せ', type: 'positive', category: '喜び系' },
   { emotion: '楽しさ', type: 'positive', category: '喜び系' },
-  { emotion: '嬉しさ', type: 'positive', category: '喜び系' },
   { emotion: '満足', type: 'positive', category: '喜び系' },
   
   { emotion: '安心', type: 'positive', category: '平静系' },
   { emotion: '平静', type: 'positive', category: '平静系' },
-  { emotion: '落ち着き', type: 'positive', category: '平静系' },
   { emotion: 'リラックス', type: 'positive', category: '平静系' },
-  { emotion: '解放感', type: 'positive', category: '平静系' },
   
   { emotion: '希望', type: 'positive', category: '希望系' },
   { emotion: '期待', type: 'positive', category: '希望系' },
-  { emotion: '楽観', type: 'positive', category: '希望系' },
   { emotion: '前向き', type: 'positive', category: '希望系' },
   
   { emotion: '自信', type: 'positive', category: '自己肯定系' },
-  { emotion: '誇り', type: 'positive', category: '自己肯定系' },
   { emotion: '達成感', type: 'positive', category: '自己肯定系' },
-  { emotion: '自己受容', type: 'positive', category: '自己肯定系' },
   
   { emotion: '感謝', type: 'positive', category: 'その他' },
-  { emotion: '愛情', type: 'positive', category: 'その他' },
-  { emotion: '理解', type: 'positive', category: 'その他' },
   { emotion: '決意', type: 'positive', category: 'その他' },
   
-  // 成長系
   { emotion: '成長感', type: 'positive', category: '成長系' },
-  { emotion: '学び', type: 'positive', category: '成長系' },
-  { emotion: '気づき', type: 'positive', category: '成長系' },
-  { emotion: '克服感', type: 'positive', category: '成長系' },
-  
-  // 活動系  
   { emotion: 'やる気', type: 'positive', category: '活動系' },
-  { emotion: '集中', type: 'positive', category: '活動系' },
-  { emotion: '興味', type: 'positive', category: '活動系' },
-  
-  // 勇気系
-  { emotion: '勇気', type: 'positive', category: '勇気系' },
-  { emotion: '忍耐', type: 'positive', category: '勇気系' },
-  { emotion: '充実感', type: 'positive', category: '勇気系' },
 ];
 
 // 感情の分類を取得する関数
