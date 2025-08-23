@@ -7,8 +7,8 @@ import { classifyEmotion, EmotionType } from '../../utils/emotionClassification'
 interface EmotionClassificationDropZoneProps {
   emotions: EmotionEntry[];
   onEmotionsUpdate: (emotions: EmotionEntry[]) => void;
-  unclassifiedEmotions: string[];
-  onUnclassifiedRemove: (emotion: string) => void;
+  unclassifiedEmotions: Array<string | { emotion: string; manualType: 'negative' | 'positive' }>;
+  onUnclassifiedRemove: (emotion: string | { emotion: string; manualType: 'negative' | 'positive' }) => void;
   className?: string;
 }
 
@@ -28,13 +28,14 @@ const EmotionClassificationDropZone: React.FC<EmotionClassificationDropZoneProps
   const [draggedItem, setDraggedItem] = useState<DraggedEmotion | null>(null);
   const [dragOverZone, setDragOverZone] = useState<EmotionType | 'unclassified' | null>(null);
 
-  // 感情を分類別に分ける
+  // 感情を分類別に分ける（手動分類対応）
   const categorizeEmotions = () => {
     const negative: EmotionEntry[] = [];
     const positive: EmotionEntry[] = [];
 
     emotions.forEach(emotion => {
-      const type = classifyEmotion(emotion.emotion);
+      // 手動分類が設定されている場合はそれを優先、なければ自動分類
+      const type = emotion.manualType || classifyEmotion(emotion.emotion);
       switch (type) {
         case 'negative':
           negative.push(emotion);
@@ -79,22 +80,29 @@ const EmotionClassificationDropZone: React.FC<EmotionClassificationDropZoneProps
       const dragData: DraggedEmotion = JSON.parse(e.dataTransfer.getData('text/plain'));
       
       if (dragData.fromZone === 'unclassified') {
-        // 未分類から分類済みへ
+        // 未分類から分類済みへ - 手動分類を設定
+        // 元の手動分類情報があればそれを優先、なければドロップ先を使用
+        const sourceEmotion = unclassifiedEmotions.find(e => 
+          (typeof e === 'string' ? e : e.emotion) === dragData.emotion
+        );
+        const existingManualType = typeof sourceEmotion === 'object' ? sourceEmotion.manualType : undefined;
+        
         const newEmotion: EmotionEntry = {
           emotion: dragData.emotion,
-          intensity: 5 // デフォルト強度
+          intensity: 5, // デフォルト強度
+          manualType: existingManualType || targetZone // 既存の手動分類があればそれを使用、なければドロップ先
         };
         
         onEmotionsUpdate([...emotions, newEmotion]);
-        onUnclassifiedRemove(dragData.emotion);
+        onUnclassifiedRemove(sourceEmotion || dragData.emotion);
       } else if (dragData.fromZone !== targetZone && dragData.index !== undefined) {
-        // 既存の感情の分類を変更（手動で分類を変更したい場合）
-        const updatedEmotions = [...emotions];
-        const emotionToUpdate = updatedEmotions.find(e => e.emotion === dragData.emotion);
-        if (emotionToUpdate) {
-          // 既存の感情はそのまま（分類は自動で決まるため、実際にはこの処理は不要だが、UI上の視覚的フィードバックのため）
-          onEmotionsUpdate(updatedEmotions);
-        }
+        // 既存の感情の分類を変更
+        const updatedEmotions = emotions.map(emotion => 
+          emotion.emotion === dragData.emotion
+            ? { ...emotion, manualType: targetZone } // 手動分類を更新
+            : emotion
+        );
+        onEmotionsUpdate(updatedEmotions);
       }
     } catch (error) {
       console.error('ドロップ処理でエラーが発生しました:', error);
@@ -206,26 +214,42 @@ const EmotionClassificationDropZone: React.FC<EmotionClassificationDropZoneProps
             <h3 className="text-lg font-semibold text-gray-700">分類が必要な感情</h3>
           </div>
           <div className="flex flex-wrap gap-2">
-            {unclassifiedEmotions.map((emotion) => (
-              <motion.div
-                key={emotion}
-                initial={{ opacity: 0, scale: 0.9 }}
-                animate={{ opacity: 1, scale: 1 }}
-                className="px-3 py-2 bg-yellow-100 text-yellow-800 rounded-lg border border-yellow-300 cursor-move"
-                draggable
-                onDragStart={(e) => handleDragStart(e as any, emotion, 'unclassified')}
-              >
-                <div className="flex items-center">
-                  <span>{emotion}</span>
-                  <button
-                    onClick={() => onUnclassifiedRemove(emotion)}
-                    className="ml-2 text-yellow-600 hover:text-red-500"
-                  >
-                    <Trash2 className="h-3 w-3" />
-                  </button>
-                </div>
-              </motion.div>
-            ))}
+            {unclassifiedEmotions.map((emotion, index) => {
+              const emotionName = typeof emotion === 'string' ? emotion : emotion.emotion;
+              const manualType = typeof emotion === 'object' ? emotion.manualType : undefined;
+              
+              return (
+                <motion.div
+                  key={`${emotionName}-${index}`}
+                  initial={{ opacity: 0, scale: 0.9 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  className={`px-3 py-2 rounded-lg border cursor-move ${
+                    manualType === 'positive' 
+                      ? 'bg-green-100 text-green-800 border-green-300'
+                      : manualType === 'negative'
+                      ? 'bg-red-100 text-red-800 border-red-300'
+                      : 'bg-yellow-100 text-yellow-800 border-yellow-300'
+                  }`}
+                  draggable
+                  onDragStart={(e) => handleDragStart(e as any, emotionName, 'unclassified')}
+                >
+                  <div className="flex items-center">
+                    <span>{emotionName}</span>
+                    {manualType && (
+                      <span className="ml-1 text-xs">
+                        {manualType === 'positive' ? '🟢' : '🔴'}
+                      </span>
+                    )}
+                    <button
+                      onClick={() => onUnclassifiedRemove(emotion)}
+                      className="ml-2 text-current hover:text-red-500"
+                    >
+                      <Trash2 className="h-3 w-3" />
+                    </button>
+                  </div>
+                </motion.div>
+              );
+            })}
           </div>
           <p className="text-sm text-gray-600 mt-2">
             👆 これらの感情を下のネガティブまたはポジティブの枠にドラッグしてください

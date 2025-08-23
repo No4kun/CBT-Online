@@ -2,6 +2,7 @@
 export interface EmotionEntry {
   emotion: string;
   intensity: number;
+  manualType?: 'negative' | 'positive'; // 手動で設定された分類（ドラッグアンドドロップによる）
 }
 
 // コラム法のデータ型定義

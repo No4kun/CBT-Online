@@ -17,7 +17,7 @@ interface AdaptationSectionProps {
 
 const AdaptationSection: React.FC<AdaptationSectionProps> = ({ data, onUpdate, originalEmotions = [] }) => {
   const [newEmotionInput, setNewEmotionInput] = useState('');
-  const [unclassifiedEmotions, setUnclassifiedEmotions] = useState<string[]>([]);
+  const [unclassifiedEmotions, setUnclassifiedEmotions] = useState<Array<string | { emotion: string; manualType: 'negative' | 'positive' }>>([]);
 
   const counterEvidencePrompts = [
     'この考えと矛盾する事実はあるか？',
@@ -52,24 +52,31 @@ const AdaptationSection: React.FC<AdaptationSectionProps> = ({ data, onUpdate, o
   ];
 
   // 新しい感情追加処理（未分類リストに追加）
-  const addNewEmotion = (emotionName: string) => {
+  const addNewEmotion = (emotionName: string, manualType?: 'negative' | 'positive') => {
     const trimmedName = emotionName.trim();
     if (!trimmedName) return;
     
     // 重複チェック（既存の感情と未分類リストの両方）
     const existsInEmotions = data.newEmotions?.some(e => e.emotion === trimmedName);
-    const existsInUnclassified = unclassifiedEmotions.includes(trimmedName);
+    const existsInUnclassified = unclassifiedEmotions.some(e => typeof e === 'string' ? e === trimmedName : e.emotion === trimmedName);
     
     if (existsInEmotions || existsInUnclassified) return;
 
-    // 未分類リストに追加
-    setUnclassifiedEmotions(prev => [...prev, trimmedName]);
+    // 未分類リストに追加（手動分類情報も含む）
+    if (manualType) {
+      setUnclassifiedEmotions(prev => [...prev, { emotion: trimmedName, manualType }]);
+    } else {
+      setUnclassifiedEmotions(prev => [...prev, trimmedName]);
+    }
     setNewEmotionInput('');
   };
 
   // 未分類感情の削除
-  const removeUnclassifiedEmotion = (emotion: string) => {
-    setUnclassifiedEmotions(prev => prev.filter(e => e !== emotion));
+  const removeUnclassifiedEmotion = (emotion: string | { emotion: string; manualType: 'negative' | 'positive' }) => {
+    const emotionName = typeof emotion === 'string' ? emotion : emotion.emotion;
+    setUnclassifiedEmotions(prev => 
+      prev.filter(e => (typeof e === 'string' ? e : e.emotion) !== emotionName)
+    );
   };
 
   // 感情の更新（ドロップゾーンから）
@@ -184,14 +191,17 @@ const AdaptationSection: React.FC<AdaptationSectionProps> = ({ data, onUpdate, o
             <p className="text-xs text-gray-600">💡 元の感情をそのまま引き継いで、強度を調整できます</p>
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2">
               {originalEmotions.map((emotion) => {
-                const isAlreadyAdded = data.newEmotions?.some(e => e.emotion === emotion.emotion) || unclassifiedEmotions.includes(emotion.emotion);
+                const emotionName = emotion.emotion;
+                const isAlreadyAdded = data.newEmotions?.some(e => e.emotion === emotionName) || 
+                  unclassifiedEmotions.some(e => (typeof e === 'string' ? e : e.emotion) === emotionName);
                 
                 return (
                   <button
-                    key={emotion.emotion}
+                    key={emotionName}
                     onClick={() => {
                       if (!isAlreadyAdded) {
-                        setUnclassifiedEmotions(prev => [...prev, emotion.emotion]);
+                        // 元の感情の手動分類情報を引き継ぐ
+                        addNewEmotion(emotionName, emotion.manualType);
                       }
                     }}
                     disabled={isAlreadyAdded}
@@ -201,7 +211,12 @@ const AdaptationSection: React.FC<AdaptationSectionProps> = ({ data, onUpdate, o
                         : 'bg-blue-100 hover:bg-blue-200 text-blue-800'
                     }`}
                   >
-                    {emotion.emotion} {isAlreadyAdded && '✓'}
+                    {emotionName} {isAlreadyAdded && '✓'}
+                    {emotion.manualType && (
+                      <span className="ml-1">
+                        {emotion.manualType === 'positive' ? '🟢' : '🔴'}
+                      </span>
+                    )}
                   </button>
                 );
               })}
@@ -294,7 +309,7 @@ const AdaptationSection: React.FC<AdaptationSectionProps> = ({ data, onUpdate, o
                       <h5 className="font-medium text-gray-700 mb-3">適応思考前</h5>
                       <div className="space-y-2">
                         {originalEmotions.map((emotion, idx) => (
-                          <div key={idx} className={`flex justify-between items-center p-2 rounded border ${getEmotionColor(emotion.emotion)}`}>
+                          <div key={idx} className={`flex justify-between items-center p-2 rounded border ${getEmotionColor(emotion)}`}>
                             <span>{emotion.emotion}</span>
                             <span className="font-medium">{emotion.intensity}/10</span>
                           </div>
@@ -306,7 +321,7 @@ const AdaptationSection: React.FC<AdaptationSectionProps> = ({ data, onUpdate, o
                       <h5 className="font-medium text-gray-700 mb-3">適応思考後</h5>
                       <div className="space-y-2">
                         {data.newEmotions.map((emotion, idx) => (
-                          <div key={idx} className={`flex justify-between items-center p-2 rounded border ${getEmotionColor(emotion.emotion)}`}>
+                          <div key={idx} className={`flex justify-between items-center p-2 rounded border ${getEmotionColor(emotion)}`}>
                             <span>{emotion.emotion}</span>
                             <span className="font-medium">{emotion.intensity}/10</span>
                           </div>

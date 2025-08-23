@@ -1,4 +1,5 @@
 // 感情の分類とユーティリティ関数
+import type { EmotionEntry } from '../types';
 
 export type EmotionType = 'negative' | 'positive';
 
@@ -56,6 +57,17 @@ export const emotionDatabase: EmotionClassification[] = [
   { emotion: 'やる気', type: 'positive', category: '活動系' },
 ];
 
+// 手動分類を考慮した感情分類（EmotionEntryオブジェクト用）
+export const getEmotionType = (emotionEntry: {emotion: string, manualType?: 'negative' | 'positive'}): EmotionType => {
+  // 手動分類が設定されている場合はそれを優先
+  if (emotionEntry.manualType) {
+    return emotionEntry.manualType;
+  }
+  
+  // 手動分類がない場合は自動分類を使用
+  return classifyEmotion(emotionEntry.emotion);
+};
+
 // 感情の分類を取得する関数
 export const classifyEmotion = (emotionName: string): EmotionType => {
   const found = emotionDatabase.find(item => item.emotion === emotionName);
@@ -109,13 +121,13 @@ export const getEmotionsByCategory = (type: EmotionType): string[] => {
     .map(item => item.emotion);
 };
 
-// ネガティブ感情とポジティブ感情の分類
-export const categorizeEmotions = (emotions: Array<{emotion: string, intensity: number}>) => {
-  const negative: Array<{emotion: string, intensity: number}> = [];
-  const positive: Array<{emotion: string, intensity: number}> = [];
+// ネガティブ感情とポジティブ感情の分類（手動分類対応）
+export const categorizeEmotions = (emotions: Array<{emotion: string, intensity: number, manualType?: 'negative' | 'positive'}>) => {
+  const negative: Array<{emotion: string, intensity: number, manualType?: 'negative' | 'positive'}> = [];
+  const positive: Array<{emotion: string, intensity: number, manualType?: 'negative' | 'positive'}> = [];
   
   emotions.forEach(emotion => {
-    const type = classifyEmotion(emotion.emotion);
+    const type = getEmotionType(emotion);
     switch (type) {
       case 'negative':
         negative.push(emotion);
@@ -191,9 +203,18 @@ export const calculateImprovement = (
   };
 };
 
-// 感情タイプに応じた色の取得
-export const getEmotionColor = (emotionName: string): string => {
-  const type = classifyEmotion(emotionName);
+// 感情タイプに応じた色の取得（オーバーロード対応）
+export const getEmotionColor = (emotionOrName: string | EmotionEntry): string => {
+  let type: 'negative' | 'positive' | 'neutral';
+  
+  if (typeof emotionOrName === 'string') {
+    // 文字列の場合は従来通り
+    type = classifyEmotion(emotionOrName);
+  } else {
+    // EmotionEntryオブジェクトの場合は手動分類を優先
+    type = getEmotionType(emotionOrName);
+  }
+  
   switch (type) {
     case 'negative':
       return 'bg-red-100 text-red-800 border-red-200';
