@@ -1,15 +1,15 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { 
   ArrowLeft, 
   Plus, 
   Calendar as CalendarIcon,
-  Download,
-  Upload,
   Shield,
   RefreshCw,
-  Brain
+  Brain,
+  Smile,
+  Trophy
 } from 'lucide-react';
 import ActivityTracker from '../components/ActivityTracker/ActivityTracker';
 import type { ActivityRecord } from '../types';
@@ -109,84 +109,6 @@ const ActivityRecordPage: React.FC = () => {
         alert('❌ データの保存に失敗しました。ブラウザを再起動してお試しください。');
       }
     }
-  };
-
-  // データの自動バックアップ機能
-  const createBackup = () => {
-    try {
-      const data = {
-        records: records,
-        timestamp: new Date().toISOString(),
-        version: '1.0',
-        type: 'activity-records'
-      };
-      const backupData = JSON.stringify(data, null, 2);
-      const blob = new Blob([backupData], { type: 'application/json' });
-      const url = URL.createObjectURL(blob);
-      
-      const link = document.createElement('a');
-      link.href = url;
-      link.download = `activity-records-backup-${new Date().toISOString().split('T')[0]}.json`;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      URL.revokeObjectURL(url);
-      
-      alert('✅ 活動記録のバックアップファイルをダウンロードしました。');
-    } catch (error) {
-      console.error('Backup error:', error);
-      alert('❌ バックアップの作成に失敗しました。');
-    }
-  };
-
-  // バックアップからの復元機能
-  const restoreFromBackup = () => {
-    const input = document.createElement('input');
-    input.type = 'file';
-    input.accept = '.json';
-    
-    input.onchange = (e) => {
-      const file = (e.target as HTMLInputElement).files?.[0];
-      if (!file) return;
-      
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        try {
-          const backupData = JSON.parse(e.target?.result as string);
-          
-          if (!backupData.records || !Array.isArray(backupData.records) || backupData.type !== 'activity-records') {
-            throw new Error('Invalid backup format for activity records');
-          }
-          
-          // 確認ダイアログ
-          const confirmMessage = `バックアップファイルから${backupData.records.length}件の活動記録を復元します。\n\n現在のデータは上書きされます。続行しますか？`;
-          if (!confirm(confirmMessage)) return;
-          
-          // データを復元
-          const restoredRecords = backupData.records.map((record: any) => ({
-            ...record,
-            createdAt: new Date(record.createdAt),
-            updatedAt: new Date(record.updatedAt),
-            entries: record.entries.map((entry: any) => ({
-              ...entry,
-              createdAt: new Date(entry.createdAt),
-              updatedAt: new Date(entry.updatedAt)
-            }))
-          }));
-          
-          setRecords(restoredRecords);
-          saveToLocalStorage(restoredRecords);
-          
-          alert(`✅ ${restoredRecords.length}件の活動記録を復元しました。`);
-        } catch (error) {
-          console.error('Restore error:', error);
-          alert('❌ バックアップファイルの復元に失敗しました。ファイル形式を確認してください。');
-        }
-      };
-      reader.readAsText(file);
-    };
-    
-    input.click();
   };
 
   // データの整合性チェック
@@ -346,23 +268,14 @@ const ActivityRecordPage: React.FC = () => {
             <div className="flex gap-2">
               {/* データ管理機能 */}
               <div className="flex gap-1 border-r border-gray-300 pr-2 mr-1">
-                <button
-                  onClick={createBackup}
-                  className="flex items-center space-x-1 bg-green-600 hover:bg-green-700 text-white px-3 py-2 rounded-lg font-medium transition-colors text-sm"
-                  title="活動記録をバックアップ"
-                >
-                  <Download className="h-4 w-4" />
-                  <span>バックアップ</span>
-                </button>
-                
-                <button
-                  onClick={restoreFromBackup}
+                <Link
+                  to="/backup-manager"
                   className="flex items-center space-x-1 bg-blue-600 hover:bg-blue-700 text-white px-3 py-2 rounded-lg font-medium transition-colors text-sm"
-                  title="バックアップから復元"
+                  title="データ管理とバックアップ"
                 >
-                  <Upload className="h-4 w-4" />
-                  <span>復元</span>
-                </button>
+                  <Shield className="h-4 w-4" />
+                  <span>データ管理</span>
+                </Link>
                 
                 <button
                   onClick={validateData}
@@ -427,7 +340,7 @@ const ActivityRecordPage: React.FC = () => {
               
               <div className="bg-purple-50 p-4 rounded-lg border border-purple-200">
                 <div className="flex items-center space-x-2">
-                  <Download className="h-4 w-4 text-purple-600" />
+                  <Smile className="h-4 w-4 text-purple-600" />
                   <span className="text-sm font-medium text-purple-800">平均快楽度</span>
                 </div>
                 <p className="text-2xl font-bold text-purple-900 mt-1">
@@ -440,7 +353,7 @@ const ActivityRecordPage: React.FC = () => {
               
               <div className="bg-orange-50 p-4 rounded-lg border border-orange-200">
                 <div className="flex items-center space-x-2">
-                  <Upload className="h-4 w-4 text-orange-600" />
+                  <Trophy className="h-4 w-4 text-orange-600" />
                   <span className="text-sm font-medium text-orange-800">平均達成感</span>
                 </div>
                 <p className="text-2xl font-bold text-orange-900 mt-1">

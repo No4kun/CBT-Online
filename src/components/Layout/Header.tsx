@@ -1,7 +1,7 @@
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Brain, Home, FileText, Clock, BarChart3 } from 'lucide-react';
+import { Brain, Home, FileText, Clock, FlaskConical, Shield } from 'lucide-react';
 
 const Header: React.FC = () => {
   const location = useLocation();
@@ -9,8 +9,9 @@ const Header: React.FC = () => {
   const navigation = [
     { name: 'ホーム', href: '/', icon: Home },
     { name: 'コラム法', href: '/column-method', icon: FileText },
-    { name: '行動記録', href: '/behavior-record', icon: BarChart3 },
     { name: '活動記録', href: '/activity-record', icon: Clock },
+    { name: '行動実験', href: '/behavior-experiment', icon: FlaskConical },
+    { name: 'バックアップ', href: '/backup-manager', icon: Shield },
   ];
 
   return (

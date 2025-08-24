@@ -1,7 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { FileText, BarChart3, Heart, Brain, TrendingUp, Activity } from 'lucide-react';
+import { FileText, Heart, Brain, TrendingUp, Activity, FlaskConical, Shield } from 'lucide-react';
 
 const Home: React.FC = () => {
   const features = [
@@ -13,18 +13,25 @@ const Home: React.FC = () => {
       href: '/column-method'
     },
     {
-      icon: BarChart3,
-      title: '行動記録',
-      description: '日々の行動パターンを記録して、改善点を見つけましょう',
-      color: 'from-secondary-500 to-secondary-600',
-      href: '/behavior-record'
-    },
-    {
       icon: Activity,
       title: '活動記録',
       description: '時間ごとの活動とその楽しさ・達成感を記録して分析しましょう',
       color: 'from-orange-500 to-orange-600',
       href: '/activity-record'
+    },
+    {
+      icon: FlaskConical,
+      title: '行動実験',
+      description: '計画的な実験を通して、新しい行動や考え方を試してみましょう',
+      color: 'from-purple-500 to-purple-600',
+      href: '/behavior-experiment'
+    },
+    {
+      icon: Shield,
+      title: 'バックアップ管理',
+      description: '大切なデータを安全に保護・管理して、いつでも復元できます',
+      color: 'from-blue-500 to-blue-600',
+      href: '/backup-manager'
     }
   ];
 
@@ -79,7 +86,7 @@ const Home: React.FC = () => {
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ duration: 0.6, delay: 0.3 }}
-        className="grid md:grid-cols-2 lg:grid-cols-3 gap-6"
+        className="grid md:grid-cols-2 lg:grid-cols-4 gap-6"
       >
         {features.map((feature, index) => {
           const Icon = feature.icon;
@@ -176,23 +183,47 @@ const Home: React.FC = () => {
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6, delay: 1.2 }}
-        className="text-center space-y-6 bg-gradient-to-r from-primary-500 to-secondary-500 rounded-3xl p-8 md:p-12 text-white"
+        className="text-center space-y-8 bg-gradient-to-r from-primary-500 to-secondary-500 rounded-3xl p-8 md:p-12 text-white"
       >
         <h2 className="text-3xl font-bold">今すぐ始めてみましょう</h2>
         <p className="text-xl opacity-90 max-w-2xl mx-auto">
           小さな一歩が大きな変化の始まりです
         </p>
-        <motion.div
-          whileHover={{ scale: 1.05 }}
-          whileTap={{ scale: 0.95 }}
-        >
-          <Link
-            to="/column-method"
-            className="inline-block bg-white text-primary-600 font-semibold px-8 py-4 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-200 transform hover:-translate-y-1"
+        <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
+          <motion.div
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
           >
-            コラム法を始める
-          </Link>
-        </motion.div>
+            <Link
+              to="/column-method"
+              className="inline-block bg-white text-primary-600 font-semibold px-8 py-4 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-200 transform hover:-translate-y-1"
+            >
+              コラム法を始める
+            </Link>
+          </motion.div>
+          <motion.div
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+          >
+            <Link
+              to="/activity-record"
+              className="inline-block bg-white text-orange-600 font-semibold px-8 py-4 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-200 transform hover:-translate-y-1"
+            >
+              活動記録を始める
+            </Link>
+          </motion.div>
+          <motion.div
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+          >
+            <Link
+              to="/behavior-experiment"
+              className="inline-block bg-white text-purple-600 font-semibold px-8 py-4 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-200 transform hover:-translate-y-1"
+            >
+              行動実験を始める
+            </Link>
+          </motion.div>
+        </div>
       </motion.section>
     </div>
   );

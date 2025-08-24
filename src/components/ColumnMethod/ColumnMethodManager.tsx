@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { Link } from 'react-router-dom';
 import { 
   Plus, 
   Edit, 
@@ -12,8 +13,6 @@ import {
   BarChart3,
   Eye,
   X,
-  Download,
-  Upload,
   Shield,
   RefreshCw
 } from 'lucide-react';
@@ -37,7 +36,7 @@ const ColumnMethodManager: React.FC<ColumnMethodManagerProps> = ({ onBack }) => 
   const [isEditing, setIsEditing] = useState(false);
   const [showDetailModal, setShowDetailModal] = useState(false);
 
-  // localStorage からデータを読み込み（復旧機能付き）
+  // localStorage からデータを読み込み（復旧機能付き + 複数バックアップ形式対応）
   useEffect(() => {
     try {
       let savedRecords = localStorage.getItem('column-method-records');
@@ -58,20 +57,32 @@ const ColumnMethodManager: React.FC<ColumnMethodManagerProps> = ({ onBack }) => 
       
       if (savedRecords) {
         const parsed = JSON.parse(savedRecords);
+        let processedRecords: ColumnEntry[] = [];
         
-        // データ形式の検証
-        if (!Array.isArray(parsed)) {
+        // 複数のバックアップ形式に対応
+        if (Array.isArray(parsed)) {
+          // 形式1: 直接配列 [record1, record2, ...]
+          processedRecords = parsed;
+        } else if (parsed.records && Array.isArray(parsed.records)) {
+          // 形式2: ラップされた形式 {records: [record1, record2, ...], timestamp: "...", version: "..."}
+          processedRecords = parsed.records;
+          console.log(`📦 バックアップ形式を検出: version ${parsed.version}, timestamp ${parsed.timestamp}`);
+        } else if (parsed.data && Array.isArray(parsed.data)) {
+          // 形式3: data プロパティ内の配列
+          processedRecords = parsed.data;
+        } else {
           throw new Error('データ形式が正しくありません');
         }
         
         // 日付文字列を Date オブジェクトに変換
-        const processedRecords = parsed.map((record: any) => ({
+        const normalizedRecords = processedRecords.map((record: any) => ({
           ...record,
           createdAt: new Date(record.createdAt),
           updatedAt: new Date(record.updatedAt)
         }));
         
-        setRecords(processedRecords);
+        setRecords(normalizedRecords);
+        console.log(`✅ コラム法記録を読み込み: ${normalizedRecords.length}件`);
       }
     } catch (error) {
       console.error('コラム法記録の読み込みに失敗しました:', error);
@@ -81,13 +92,25 @@ const ColumnMethodManager: React.FC<ColumnMethodManagerProps> = ({ onBack }) => 
         const backupData = localStorage.getItem('column-method-records-backup');
         if (backupData && confirm('データの読み込みに失敗しました。バックアップから復旧を試行しますか？')) {
           const parsed = JSON.parse(backupData);
-          const processedRecords = parsed.map((record: any) => ({
+          
+          // バックアップも複数形式対応
+          let backupRecords: ColumnEntry[] = [];
+          if (Array.isArray(parsed)) {
+            backupRecords = parsed;
+          } else if (parsed.records && Array.isArray(parsed.records)) {
+            backupRecords = parsed.records;
+          } else if (parsed.data && Array.isArray(parsed.data)) {
+            backupRecords = parsed.data;
+          }
+          
+          const processedRecords = backupRecords.map((record: any) => ({
             ...record,
             createdAt: new Date(record.createdAt),
             updatedAt: new Date(record.updatedAt)
           }));
+          
           setRecords(processedRecords);
-          localStorage.setItem('column-method-records', backupData);
+          localStorage.setItem('column-method-records', JSON.stringify(processedRecords));
           alert('✅ バックアップからの復旧が完了しました。');
         }
       } catch (backupError) {
@@ -183,78 +206,6 @@ const ColumnMethodManager: React.FC<ColumnMethodManagerProps> = ({ onBack }) => 
       return initialAvg - finalAvg; // 変化前 - 変化後（強度が下がれば正の値）
     }
     return record.emotionChange || 0;
-  };
-
-  // データの自動バックアップ機能
-  const createBackup = () => {
-    try {
-      const data = {
-        records: records,
-        timestamp: new Date().toISOString(),
-        version: '1.0'
-      };
-      const backupData = JSON.stringify(data, null, 2);
-      const blob = new Blob([backupData], { type: 'application/json' });
-      const url = URL.createObjectURL(blob);
-      
-      const link = document.createElement('a');
-      link.href = url;
-      link.download = `cbt-column-backup-${new Date().toISOString().split('T')[0]}.json`;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      URL.revokeObjectURL(url);
-      
-      alert('✅ バックアップファイルをダウンロードしました。');
-    } catch (error) {
-      console.error('Backup error:', error);
-      alert('❌ バックアップの作成に失敗しました。');
-    }
-  };
-
-  // バックアップからの復元機能
-  const restoreFromBackup = () => {
-    const input = document.createElement('input');
-    input.type = 'file';
-    input.accept = '.json';
-    
-    input.onchange = (e) => {
-      const file = (e.target as HTMLInputElement).files?.[0];
-      if (!file) return;
-      
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        try {
-          const backupData = JSON.parse(e.target?.result as string);
-          
-          if (!backupData.records || !Array.isArray(backupData.records)) {
-            throw new Error('Invalid backup format');
-          }
-          
-          // 確認ダイアログ
-          const confirmMessage = `バックアップファイルから${backupData.records.length}件の記録を復元します。\n\n現在のデータは上書きされます。続行しますか？`;
-          if (!confirm(confirmMessage)) return;
-          
-          // データを復元
-          const restoredRecords = backupData.records.map((record: any) => ({
-            ...record,
-            createdAt: new Date(record.createdAt),
-            updatedAt: new Date(record.updatedAt)
-          }));
-          
-          setRecords(restoredRecords);
-          saveToStorage(restoredRecords);
-          
-          alert(`✅ ${restoredRecords.length}件の記録を復元しました。`);
-        } catch (error) {
-          console.error('Restore error:', error);
-          alert('❌ バックアップファイルの復元に失敗しました。ファイル形式を確認してください。');
-        }
-      };
-      reader.readAsText(file);
-    };
-    
-    input.click();
   };
 
   // データの整合性チェック
@@ -357,23 +308,14 @@ const ColumnMethodManager: React.FC<ColumnMethodManagerProps> = ({ onBack }) => 
           <div className="flex gap-2">
             {/* データ管理機能 */}
             <div className="flex gap-1 border-r border-gray-300 pr-2 mr-1">
-              <button
-                onClick={createBackup}
-                className="flex items-center space-x-1 bg-green-600 hover:bg-green-700 text-white px-3 py-2 rounded-lg font-medium transition-colors text-sm"
-                title="データをバックアップ"
-              >
-                <Download className="h-4 w-4" />
-                <span>バックアップ</span>
-              </button>
-              
-              <button
-                onClick={restoreFromBackup}
+              <Link
+                to="/backup-manager"
                 className="flex items-center space-x-1 bg-blue-600 hover:bg-blue-700 text-white px-3 py-2 rounded-lg font-medium transition-colors text-sm"
-                title="バックアップから復元"
+                title="データ管理とバックアップ"
               >
-                <Upload className="h-4 w-4" />
-                <span>復元</span>
-              </button>
+                <Shield className="h-4 w-4" />
+                <span>データ管理</span>
+              </Link>
               
               <button
                 onClick={validateData}

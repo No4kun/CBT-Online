@@ -3,8 +3,9 @@ import { motion } from 'framer-motion';
 import Header from './components/Layout/Header';
 import Home from './pages/Home';
 import ColumnMethod from './pages/ColumnMethod';
-import BehaviorRecord from './pages/BehaviorRecord';
+import BackupManager from './pages/BackupManager';
 import ActivityRecord from './pages/ActivityRecord';
+import BehaviorExperiment from './pages/BehaviorExperiment';
 
 function App() {
   return (
@@ -20,8 +21,9 @@ function App() {
           <Routes>
             <Route path="/" element={<Home />} />
             <Route path="/column-method" element={<ColumnMethod />} />
-            <Route path="/behavior-record" element={<BehaviorRecord />} />
+            <Route path="/backup-manager" element={<BackupManager />} />
             <Route path="/activity-record" element={<ActivityRecord />} />
+            <Route path="/behavior-experiment" element={<BehaviorExperiment />} />
           </Routes>
         </motion.main>
       </div>

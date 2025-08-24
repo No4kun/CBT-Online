@@ -72,3 +72,34 @@ export interface AdaptationSection {
   emotionChange: number;
   newEmotions: EmotionEntry[]; // 適応思考後の感情
 }
+
+// 行動実験のデータ型定義
+export interface BehaviorExperimentPlan {
+  id: string;
+  scheduledDateTime: string;
+  plannedAction: string;
+  expectedTroubles: string;
+  expectedJoy: number; // 0-100
+  expectedAchievement: number; // 0-100
+  successProbability: number; // 0-100
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface BehaviorExperimentResult {
+  id: string;
+  planId: string; // 対応する計画のID
+  actualDateTime: string;
+  actualAction: string;
+  result: string;
+  learnings: string;
+  actualJoy: number; // 0-100
+  actualAchievement: number; // 0-100
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface BehaviorExperiment {
+  plan: BehaviorExperimentPlan;
+  result?: BehaviorExperimentResult;
+}
