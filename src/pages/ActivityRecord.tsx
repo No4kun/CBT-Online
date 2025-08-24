@@ -1,7 +1,16 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { ArrowLeft, Plus, Calendar as CalendarIcon } from 'lucide-react';
+import { 
+  ArrowLeft, 
+  Plus, 
+  Calendar as CalendarIcon,
+  Download,
+  Upload,
+  Shield,
+  RefreshCw,
+  Brain
+} from 'lucide-react';
 import ActivityTracker from '../components/ActivityTracker/ActivityTracker';
 import type { ActivityRecord } from '../types';
 
@@ -11,12 +20,34 @@ const ActivityRecordPage: React.FC = () => {
   const [showForm, setShowForm] = useState(false);
   const [editingRecord, setEditingRecord] = useState<ActivityRecord | null>(null);
 
-  // ローカルストレージからデータ読み込み
+  // ローカルストレージからデータ読み込み（復旧機能付き）
   useEffect(() => {
-    const savedRecords = localStorage.getItem('activityRecords');
-    if (savedRecords) {
-      try {
-        const parsedRecords = JSON.parse(savedRecords).map((record: any) => ({
+    try {
+      let savedRecords = localStorage.getItem('activityRecords');
+      
+      // メインデータが破損している場合、バックアップから復旧を試行
+      if (!savedRecords) {
+        const backupData = localStorage.getItem('activityRecords-backup');
+        const backupTimestamp = localStorage.getItem('activityRecords-backup-timestamp');
+        
+        if (backupData && backupTimestamp) {
+          const backupDate = new Date(backupTimestamp).toLocaleDateString('ja-JP');
+          if (confirm(`活動記録のメインデータが見つかりません。${backupDate}のバックアップから復旧しますか？`)) {
+            savedRecords = backupData;
+            localStorage.setItem('activityRecords', backupData);
+          }
+        }
+      }
+      
+      if (savedRecords) {
+        const parsedRecords = JSON.parse(savedRecords);
+        
+        // データ形式の検証
+        if (!Array.isArray(parsedRecords)) {
+          throw new Error('データ形式が正しくありません');
+        }
+        
+        const processedRecords = parsedRecords.map((record: any) => ({
           ...record,
           createdAt: new Date(record.createdAt),
           updatedAt: new Date(record.updatedAt),
@@ -26,16 +57,213 @@ const ActivityRecordPage: React.FC = () => {
             updatedAt: new Date(entry.updatedAt)
           }))
         }));
-        setRecords(parsedRecords);
-      } catch (error) {
-        console.error('活動記録データの読み込みに失敗しました:', error);
+        
+        setRecords(processedRecords);
+      }
+    } catch (error) {
+      console.error('活動記録データの読み込みに失敗しました:', error);
+      
+      // エラー時の復旧試行
+      try {
+        const backupData = localStorage.getItem('activityRecords-backup');
+        if (backupData && confirm('活動記録データの読み込みに失敗しました。バックアップから復旧を試行しますか？')) {
+          const parsedRecords = JSON.parse(backupData);
+          const processedRecords = parsedRecords.map((record: any) => ({
+            ...record,
+            createdAt: new Date(record.createdAt),
+            updatedAt: new Date(record.updatedAt),
+            entries: record.entries.map((entry: any) => ({
+              ...entry,
+              createdAt: new Date(entry.createdAt),
+              updatedAt: new Date(entry.updatedAt)
+            }))
+          }));
+          setRecords(processedRecords);
+          localStorage.setItem('activityRecords', backupData);
+          alert('✅ 活動記録のバックアップからの復旧が完了しました。');
+        }
+      } catch (backupError) {
+        console.error('バックアップからの復旧も失敗しました:', backupError);
+        alert('❌ 活動記録データの復旧に失敗しました。手動でバックアップファイルから復元してください。');
       }
     }
   }, []);
 
-  // ローカルストレージにデータ保存
+  // ローカルストレージにデータ保存（エラーハンドリング強化）
   const saveToLocalStorage = (updatedRecords: ActivityRecord[]) => {
-    localStorage.setItem('activityRecords', JSON.stringify(updatedRecords));
+    try {
+      const dataToSave = JSON.stringify(updatedRecords);
+      localStorage.setItem('activityRecords', dataToSave);
+      
+      // 自動バックアップ（5件以上で実行）
+      if (updatedRecords.length >= 5 && updatedRecords.length % 3 === 0) {
+        localStorage.setItem('activityRecords-backup', dataToSave);
+        localStorage.setItem('activityRecords-backup-timestamp', new Date().toISOString());
+      }
+    } catch (error) {
+      console.error('活動記録の保存に失敗しました:', error);
+      // 容量不足の場合の対処
+      if (error instanceof DOMException && error.code === 22) {
+        alert('⚠️ ストレージ容量が不足しています。古いデータのバックアップを作成して削除することを検討してください。');
+      } else {
+        alert('❌ データの保存に失敗しました。ブラウザを再起動してお試しください。');
+      }
+    }
+  };
+
+  // データの自動バックアップ機能
+  const createBackup = () => {
+    try {
+      const data = {
+        records: records,
+        timestamp: new Date().toISOString(),
+        version: '1.0',
+        type: 'activity-records'
+      };
+      const backupData = JSON.stringify(data, null, 2);
+      const blob = new Blob([backupData], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `activity-records-backup-${new Date().toISOString().split('T')[0]}.json`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+      
+      alert('✅ 活動記録のバックアップファイルをダウンロードしました。');
+    } catch (error) {
+      console.error('Backup error:', error);
+      alert('❌ バックアップの作成に失敗しました。');
+    }
+  };
+
+  // バックアップからの復元機能
+  const restoreFromBackup = () => {
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = '.json';
+    
+    input.onchange = (e) => {
+      const file = (e.target as HTMLInputElement).files?.[0];
+      if (!file) return;
+      
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        try {
+          const backupData = JSON.parse(e.target?.result as string);
+          
+          if (!backupData.records || !Array.isArray(backupData.records) || backupData.type !== 'activity-records') {
+            throw new Error('Invalid backup format for activity records');
+          }
+          
+          // 確認ダイアログ
+          const confirmMessage = `バックアップファイルから${backupData.records.length}件の活動記録を復元します。\n\n現在のデータは上書きされます。続行しますか？`;
+          if (!confirm(confirmMessage)) return;
+          
+          // データを復元
+          const restoredRecords = backupData.records.map((record: any) => ({
+            ...record,
+            createdAt: new Date(record.createdAt),
+            updatedAt: new Date(record.updatedAt),
+            entries: record.entries.map((entry: any) => ({
+              ...entry,
+              createdAt: new Date(entry.createdAt),
+              updatedAt: new Date(entry.updatedAt)
+            }))
+          }));
+          
+          setRecords(restoredRecords);
+          saveToLocalStorage(restoredRecords);
+          
+          alert(`✅ ${restoredRecords.length}件の活動記録を復元しました。`);
+        } catch (error) {
+          console.error('Restore error:', error);
+          alert('❌ バックアップファイルの復元に失敗しました。ファイル形式を確認してください。');
+        }
+      };
+      reader.readAsText(file);
+    };
+    
+    input.click();
+  };
+
+  // データの整合性チェック
+  const validateData = () => {
+    try {
+      const issues: string[] = [];
+      
+      records.forEach((record, index) => {
+        if (!record.id) issues.push(`記録${index + 1}: IDがありません`);
+        if (!record.date) issues.push(`記録${index + 1}: 日付が空です`);
+        if (!record.entries || record.entries.length === 0) {
+          issues.push(`記録${index + 1}: 活動エントリがありません`);
+        }
+        if (!record.createdAt) issues.push(`記録${index + 1}: 作成日時がありません`);
+        
+        // エントリの検証
+        record.entries?.forEach((entry, entryIndex) => {
+          if (!entry.timeSlot) issues.push(`記録${index + 1}, エントリ${entryIndex + 1}: 時間スロットがありません`);
+          if (!entry.activity) issues.push(`記録${index + 1}, エントリ${entryIndex + 1}: 活動が空です`);
+          if (entry.pleasure < 0 || entry.pleasure > 10) {
+            issues.push(`記録${index + 1}, エントリ${entryIndex + 1}: 快楽度が範囲外です`);
+          }
+          if (entry.achievement < 0 || entry.achievement > 10) {
+            issues.push(`記録${index + 1}, エントリ${entryIndex + 1}: 達成感が範囲外です`);
+          }
+        });
+      });
+      
+      if (issues.length === 0) {
+        alert('✅ 活動記録データの整合性に問題はありません。');
+      } else {
+        const message = `⚠️ 以下の問題が見つかりました:\n\n${issues.slice(0, 10).join('\n')}${issues.length > 10 ? '\n...他' + (issues.length - 10) + '件' : ''}`;
+        alert(message);
+      }
+    } catch (error) {
+      console.error('Validation error:', error);
+      alert('❌ データの検証中にエラーが発生しました。');
+    }
+  };
+
+  // 重複データの削除
+  const removeDuplicates = () => {
+    const originalCount = records.length;
+    const uniqueRecords = records.filter((record, index, self) => 
+      index === self.findIndex(r => r.id === record.id)
+    );
+    
+    if (originalCount === uniqueRecords.length) {
+      alert('重複データはありませんでした。');
+      return;
+    }
+    
+    if (confirm(`${originalCount - uniqueRecords.length}件の重複データが見つかりました。削除しますか？`)) {
+      setRecords(uniqueRecords);
+      saveToLocalStorage(uniqueRecords);
+      alert(`✅ ${originalCount - uniqueRecords.length}件の重複データを削除しました。`);
+    }
+  };
+
+  // デバッグ用: localStorage の内容を確認
+  const debugStorage = () => {
+    const activityData = localStorage.getItem('activityRecords');
+    
+    console.log('=== 活動記録 localStorage デバッグ情報 ===');
+    console.log('活動記録データ:', activityData);
+    console.log('現在の records state:', records);
+    console.log('レコード詳細:', records.map(r => ({ 
+      id: r.id, 
+      date: r.date, 
+      entriesCount: r.entries.length, 
+      createdAt: r.createdAt 
+    })));
+    
+    const storageSize = new Blob([activityData || '']).size;
+    const totalEntries = records.reduce((sum, r) => sum + r.entries.length, 0);
+    
+    alert(`デバッグ情報をコンソールに出力しました。\n\n活動記録: ${records.length}日分\n総活動エントリ: ${totalEntries}件\nストレージサイズ: ${Math.round(storageSize / 1024 * 100) / 100}KB\n\n詳細はコンソールを確認してください。`);
   };
 
   // 記録の保存
@@ -115,14 +343,115 @@ const ActivityRecordPage: React.FC = () => {
               </div>
             </div>
             
-            <button
-              onClick={handleNewRecord}
-              className="flex items-center space-x-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium transition-colors"
-            >
-              <Plus className="h-5 w-5" />
-              <span>新しい記録</span>
-            </button>
+            <div className="flex gap-2">
+              {/* データ管理機能 */}
+              <div className="flex gap-1 border-r border-gray-300 pr-2 mr-1">
+                <button
+                  onClick={createBackup}
+                  className="flex items-center space-x-1 bg-green-600 hover:bg-green-700 text-white px-3 py-2 rounded-lg font-medium transition-colors text-sm"
+                  title="活動記録をバックアップ"
+                >
+                  <Download className="h-4 w-4" />
+                  <span>バックアップ</span>
+                </button>
+                
+                <button
+                  onClick={restoreFromBackup}
+                  className="flex items-center space-x-1 bg-blue-600 hover:bg-blue-700 text-white px-3 py-2 rounded-lg font-medium transition-colors text-sm"
+                  title="バックアップから復元"
+                >
+                  <Upload className="h-4 w-4" />
+                  <span>復元</span>
+                </button>
+                
+                <button
+                  onClick={validateData}
+                  className="flex items-center space-x-1 bg-orange-600 hover:bg-orange-700 text-white px-3 py-2 rounded-lg font-medium transition-colors text-sm"
+                  title="データの整合性をチェック"
+                >
+                  <Shield className="h-4 w-4" />
+                  <span>検証</span>
+                </button>
+                
+                <button
+                  onClick={removeDuplicates}
+                  className="flex items-center space-x-1 bg-red-600 hover:bg-red-700 text-white px-3 py-2 rounded-lg font-medium transition-colors text-sm"
+                  title="重複データを削除"
+                >
+                  <RefreshCw className="h-4 w-4" />
+                  <span>重複削除</span>
+                </button>
+              </div>
+              
+              {/* デバッグ機能 */}
+              <button
+                onClick={debugStorage}
+                className="flex items-center space-x-2 bg-gray-600 hover:bg-gray-700 text-white px-3 py-2 rounded-lg font-medium transition-colors text-sm"
+                title="データの状態を確認"
+              >
+                <Brain className="h-4 w-4" />
+                <span>デバッグ</span>
+              </button>
+              
+              {/* 新規記録作成 */}
+              <button
+                onClick={handleNewRecord}
+                className="flex items-center space-x-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium transition-colors"
+              >
+                <Plus className="h-5 w-5" />
+                <span>新しい記録</span>
+              </button>
+            </div>
           </div>
+          
+          {/* 統計情報 */}
+          {records.length > 0 && (
+            <div className="mt-6 grid grid-cols-1 md:grid-cols-4 gap-4">
+              <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
+                <div className="flex items-center space-x-2">
+                  <CalendarIcon className="h-4 w-4 text-blue-600" />
+                  <span className="text-sm font-medium text-blue-800">記録日数</span>
+                </div>
+                <p className="text-2xl font-bold text-blue-900 mt-1">{records.length}</p>
+              </div>
+              
+              <div className="bg-green-50 p-4 rounded-lg border border-green-200">
+                <div className="flex items-center space-x-2">
+                  <Brain className="h-4 w-4 text-green-600" />
+                  <span className="text-sm font-medium text-green-800">総活動数</span>
+                </div>
+                <p className="text-2xl font-bold text-green-900 mt-1">
+                  {records.reduce((sum, r) => sum + r.entries.length, 0)}
+                </p>
+              </div>
+              
+              <div className="bg-purple-50 p-4 rounded-lg border border-purple-200">
+                <div className="flex items-center space-x-2">
+                  <Download className="h-4 w-4 text-purple-600" />
+                  <span className="text-sm font-medium text-purple-800">平均快楽度</span>
+                </div>
+                <p className="text-2xl font-bold text-purple-900 mt-1">
+                  {records.length > 0 
+                    ? (records.reduce((sum, r) => sum + r.averagePleasure, 0) / records.length).toFixed(1)
+                    : '0.0'
+                  }
+                </p>
+              </div>
+              
+              <div className="bg-orange-50 p-4 rounded-lg border border-orange-200">
+                <div className="flex items-center space-x-2">
+                  <Upload className="h-4 w-4 text-orange-600" />
+                  <span className="text-sm font-medium text-orange-800">平均達成感</span>
+                </div>
+                <p className="text-2xl font-bold text-orange-900 mt-1">
+                  {records.length > 0 
+                    ? (records.reduce((sum, r) => sum + r.averageAchievement, 0) / records.length).toFixed(1)
+                    : '0.0'
+                  }
+                </p>
+              </div>
+            </div>
+          )}
         </div>
 
         {/* 記録一覧 */}

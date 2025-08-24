@@ -10,7 +10,7 @@ const Header: React.FC = () => {
     { name: 'ホーム', href: '/', icon: Home },
     { name: 'コラム法', href: '/column-method', icon: FileText },
     { name: '行動記録', href: '/behavior-record', icon: BarChart3 },
-    { name: '履歴', href: '/history', icon: Clock },
+    { name: '活動記録', href: '/activity-record', icon: Clock },
   ];
 
   return (
