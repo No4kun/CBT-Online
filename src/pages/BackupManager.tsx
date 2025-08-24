@@ -204,8 +204,14 @@ const BackupManager: React.FC = () => {
       const blob = new Blob([JSON.stringify(backupData, null, 2)], { type: 'application/json' });
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
+      
+      // 日時を含むファイル名を生成 (YYYY-MM-DD_HH-MM-SS形式)
+      const now = new Date();
+      const dateStr = now.toISOString().split('T')[0]; // YYYY-MM-DD
+      const timeStr = now.toTimeString().split(' ')[0].replace(/:/g, '-'); // HH-MM-SS
+      
       a.href = url;
-      a.download = `cbt-complete-backup-${new Date().toISOString().split('T')[0]}.json`;
+      a.download = `cbt-complete-backup-${dateStr}_${timeStr}.json`;
       a.click();
       URL.revokeObjectURL(url);
 
