@@ -6,6 +6,8 @@ export default defineConfig({
   plugins: [react()],
   server: {
     port: 3000,
-    open: true
+    strictPort: true, // ポートが使用中でもエラーを出して固定ポートを強制
+    open: true,
+    host: 'localhost' // ホストも明示的に指定
   }
 })
