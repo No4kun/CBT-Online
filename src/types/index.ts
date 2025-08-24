@@ -30,6 +30,7 @@ export interface ActivityEntry {
   achievement: number; // 0-10
   isHalfHour?: boolean; // 30分単位の記録かどうか
   halfPosition?: 'first' | 'second'; // 前半/後半
+  excludeFromStats?: boolean; // 統計から除外するかどうか（睡眠等の意識的でない行動用）
   createdAt: Date;
   updatedAt: Date;
 }

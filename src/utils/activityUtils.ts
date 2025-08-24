@@ -67,7 +67,7 @@ export const getActivityColorMeaning = (color: ActivityColorType): string => {
   return meaningMap[color];
 };
 
-// 活動記録の分析
+// 活動記録の分析（excludeFromStatsがtrueのエントリーは除外）
 export const analyzeActivityRecord = (record: ActivityRecord): ActivityAnalysis => {
   const colorDistribution: Record<ActivityColorType, number> = {
     red: 0, orange: 0, yellow: 0, blue: 0, purple: 0
@@ -79,7 +79,10 @@ export const analyzeActivityRecord = (record: ActivityRecord): ActivityAnalysis 
   let peakAchievementTime = '';
   const lowEnergyPeriods: string[] = [];
 
-  record.entries.forEach(entry => {
+  // 統計から除外されていないエントリーのみを分析
+  const validEntries = record.entries.filter(entry => !entry.excludeFromStats);
+
+  validEntries.forEach(entry => {
     const color = getActivityColor(entry.pleasure, entry.achievement);
     colorDistribution[color]++;
 
@@ -122,9 +125,12 @@ export const analyzeActivityRecord = (record: ActivityRecord): ActivityAnalysis 
   };
 };
 
-// 統計計算
+// 統計計算（excludeFromStatsがtrueのエントリーは除外）
 export const calculateActivityStats = (entries: ActivityEntry[]) => {
-  if (entries.length === 0) {
+  // 統計から除外されていないエントリーのみをフィルタリング
+  const validEntries = entries.filter(entry => !entry.excludeFromStats);
+  
+  if (validEntries.length === 0) {
     return {
       totalPleasure: 0,
       totalAchievement: 0,
@@ -133,14 +139,14 @@ export const calculateActivityStats = (entries: ActivityEntry[]) => {
     };
   }
 
-  const totalPleasure = entries.reduce((sum, entry) => sum + entry.pleasure, 0);
-  const totalAchievement = entries.reduce((sum, entry) => sum + entry.achievement, 0);
+  const totalPleasure = validEntries.reduce((sum, entry) => sum + entry.pleasure, 0);
+  const totalAchievement = validEntries.reduce((sum, entry) => sum + entry.achievement, 0);
 
   return {
     totalPleasure,
     totalAchievement,
-    averagePleasure: Math.round((totalPleasure / entries.length) * 10) / 10,
-    averageAchievement: Math.round((totalAchievement / entries.length) * 10) / 10
+    averagePleasure: Math.round((totalPleasure / validEntries.length) * 10) / 10,
+    averageAchievement: Math.round((totalAchievement / validEntries.length) * 10) / 10
   };
 };
 
@@ -153,6 +159,7 @@ export const createDefaultActivityRecord = (date: string): ActivityRecord => {
     activity: '',
     pleasure: 5,
     achievement: 5,
+    excludeFromStats: false, // デフォルトは統計に含む
     createdAt: new Date(),
     updatedAt: new Date()
   }));

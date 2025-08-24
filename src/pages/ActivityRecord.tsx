@@ -165,7 +165,7 @@ const ActivityRecordPage: React.FC = () => {
                     </div>
                     <div className="flex items-center space-x-4">
                       <div className="text-sm text-gray-600">
-                        記録数: {record.entries.length}件
+                        記録数: {record.entries.filter(e => e.activity.trim() !== '').length}件
                       </div>
                       <button
                         onClick={(e) => {
