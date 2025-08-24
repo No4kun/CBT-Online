@@ -177,54 +177,6 @@ const Home: React.FC = () => {
           })}
         </div>
       </motion.section>
-
-      {/* CTA セクション */}
-      <motion.section
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.6, delay: 1.2 }}
-        className="text-center space-y-8 bg-gradient-to-r from-primary-500 to-secondary-500 rounded-3xl p-8 md:p-12 text-white"
-      >
-        <h2 className="text-3xl font-bold">今すぐ始めてみましょう</h2>
-        <p className="text-xl opacity-90 max-w-2xl mx-auto">
-          小さな一歩が大きな変化の始まりです
-        </p>
-        <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
-          <motion.div
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-          >
-            <Link
-              to="/column-method"
-              className="inline-block bg-white text-primary-600 font-semibold px-8 py-4 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-200 transform hover:-translate-y-1"
-            >
-              コラム法を始める
-            </Link>
-          </motion.div>
-          <motion.div
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-          >
-            <Link
-              to="/activity-record"
-              className="inline-block bg-white text-orange-600 font-semibold px-8 py-4 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-200 transform hover:-translate-y-1"
-            >
-              活動記録を始める
-            </Link>
-          </motion.div>
-          <motion.div
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-          >
-            <Link
-              to="/behavior-experiment"
-              className="inline-block bg-white text-purple-600 font-semibold px-8 py-4 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-200 transform hover:-translate-y-1"
-            >
-              行動実験を始める
-            </Link>
-          </motion.div>
-        </div>
-      </motion.section>
     </div>
   );
 };
