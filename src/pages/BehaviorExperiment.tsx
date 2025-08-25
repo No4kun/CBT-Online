@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
-import { ChevronDownIcon, ChevronUpIcon, DeleteIcon, DebugIcon } from '../components/ui/Icons';
+import { ChevronDownIcon, ChevronUpIcon } from '../components/ui/Icons';
 import { Shield } from 'lucide-react';
 import { BehaviorExperiment, BehaviorExperimentPlan, BehaviorExperimentResult } from '../types';
 import BehaviorExperimentForm from '../components/BehaviorExperiment/BehaviorExperimentForm';
@@ -13,7 +13,6 @@ const BehaviorExperimentPage: React.FC = () => {
   const [editingResult, setEditingResult] = useState<BehaviorExperimentResult | null>(null);
   const [formMode, setFormMode] = useState<'plan' | 'result'>('plan');
   const [expandedItems, setExpandedItems] = useState<Set<string>>(new Set());
-  const [debugMode, setDebugMode] = useState(false);
 
   // LocalStorageからデータを読み込み
   useEffect(() => {
@@ -171,16 +170,6 @@ const BehaviorExperimentPage: React.FC = () => {
 
   // データ管理機能は BackupManager に統合
 
-  const clearAllData = (): void => {
-    if (confirm('すべてのデータを削除しますか？この操作は元に戻せません。')) {
-      if (confirm('本当にすべてのデータを削除しますか？')) {
-        setExperiments([]);
-        localStorage.removeItem('behaviorExperiments');
-        alert('すべてのデータを削除しました。');
-      }
-    }
-  };
-
   const formatDateTime = (dateTime: string): string => {
     const date = new Date(dateTime);
     return date.toLocaleString('ja-JP');
@@ -244,37 +233,8 @@ const BehaviorExperimentPage: React.FC = () => {
                 <Shield className="w-4 h-4" />
                 データ管理
               </Link>
-              
-              <button
-                onClick={clearAllData}
-                className="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition-colors flex items-center gap-2 text-sm"
-              >
-                <DeleteIcon className="w-4 h-4" />
-                全削除
-              </button>
-              
-              <button
-                onClick={() => setDebugMode(!debugMode)}
-                className={`px-4 py-2 rounded-lg transition-colors flex items-center gap-2 text-sm ${
-                  debugMode 
-                    ? 'bg-orange-600 text-white hover:bg-orange-700' 
-                    : 'bg-gray-600 text-white hover:bg-gray-700'
-                }`}
-              >
-                <DebugIcon className="w-4 h-4" />
-                デバッグ
-              </button>
             </div>
           </div>
-          
-          {debugMode && (
-            <div className="mt-4 p-4 bg-gray-100 rounded-lg text-sm">
-              <p><strong>総実験数:</strong> {experiments.length}</p>
-              <p><strong>完了した実験:</strong> {experiments.filter(exp => exp.result).length}</p>
-              <p><strong>未完了の実験:</strong> {experiments.filter(exp => !exp.result).length}</p>
-              <p><strong>ストレージサイズ:</strong> {new Blob([JSON.stringify(experiments)]).size} bytes</p>
-            </div>
-          )}
         </motion.div>
 
         {/* 実験記録一覧 */}

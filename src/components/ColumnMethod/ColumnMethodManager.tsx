@@ -13,8 +13,7 @@ import {
   BarChart3,
   Eye,
   X,
-  Shield,
-  RefreshCw
+  Shield
 } from 'lucide-react';
 import type { ColumnEntry } from '../../types';
 import ColumnMethodForm from './ColumnMethodForm';
@@ -208,65 +207,6 @@ const ColumnMethodManager: React.FC<ColumnMethodManagerProps> = ({ onBack }) => 
     return record.emotionChange || 0;
   };
 
-  // データの整合性チェック
-  const validateData = () => {
-    try {
-      const issues: string[] = [];
-      
-      records.forEach((record, index) => {
-        if (!record.id) issues.push(`記録${index + 1}: IDがありません`);
-        if (!record.situation) issues.push(`記録${index + 1}: 状況が空です`);
-        if (!record.emotions || record.emotions.length === 0) {
-          issues.push(`記録${index + 1}: 感情が記録されていません`);
-        }
-        if (!record.automaticThought) issues.push(`記録${index + 1}: 自動思考が空です`);
-        if (!record.createdAt) issues.push(`記録${index + 1}: 作成日時がありません`);
-      });
-      
-      if (issues.length === 0) {
-        alert('✅ データの整合性に問題はありません。');
-      } else {
-        const message = `⚠️ 以下の問題が見つかりました:\n\n${issues.slice(0, 10).join('\n')}${issues.length > 10 ? '\n...他' + (issues.length - 10) + '件' : ''}`;
-        alert(message);
-      }
-    } catch (error) {
-      console.error('Validation error:', error);
-      alert('❌ データの検証中にエラーが発生しました。');
-    }
-  };
-
-  // 重複データの削除
-  const removeDuplicates = () => {
-    const originalCount = records.length;
-    const uniqueRecords = records.filter((record, index, self) => 
-      index === self.findIndex(r => r.id === record.id)
-    );
-    
-    if (originalCount === uniqueRecords.length) {
-      alert('重複データはありませんでした。');
-      return;
-    }
-    
-    if (confirm(`${originalCount - uniqueRecords.length}件の重複データが見つかりました。削除しますか？`)) {
-      setRecords(uniqueRecords);
-      saveToStorage(uniqueRecords);
-      alert(`✅ ${originalCount - uniqueRecords.length}件の重複データを削除しました。`);
-    }
-  };
-
-  // デバッグ用: localStorage の内容を確認
-  const debugStorage = () => {
-    const columnData = localStorage.getItem('column-method-records');
-    
-    console.log('=== localStorage デバッグ情報 ===');
-    console.log('コラム法データ:', columnData);
-    console.log('現在の records state:', records);
-    console.log('レコード詳細:', records.map(r => ({ id: r.id, situation: r.situation.substring(0, 30) + '...', createdAt: r.createdAt })));
-    
-    const storageSize = new Blob([columnData || '']).size;
-    alert(`デバッグ情報をコンソールに出力しました。\n\nコラム法記録: ${records.length}件\nストレージサイズ: ${Math.round(storageSize / 1024 * 100) / 100}KB\n\n詳細はコンソールを確認してください。`);
-  };
-
   // 日付フォーマット
   const formatDate = (date: Date | string) => {
     const d = typeof date === 'string' ? new Date(date) : date;
@@ -291,120 +231,49 @@ const ColumnMethodManager: React.FC<ColumnMethodManagerProps> = ({ onBack }) => 
   }
 
   return (
-    <div className="max-w-6xl mx-auto p-6 space-y-6">
-      {/* ヘッダー */}
-      <div className="bg-white rounded-xl shadow-sm border p-6">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-3">
-            <div className="bg-purple-100 p-2 rounded-lg">
-              <Brain className="h-6 w-6 text-purple-600" />
-            </div>
-            <div>
-              <h1 className="text-2xl font-bold text-gray-900">コラム法記録</h1>
-              <p className="text-gray-600">思考の記録と分析を管理します</p>
-            </div>
-          </div>
-          
-          <div className="flex gap-2">
-            {/* データ管理機能 */}
-            <div className="flex gap-1 border-r border-gray-300 pr-2 mr-1">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-cyan-100 p-4">
+      <div className="max-w-6xl mx-auto">
+        {/* ページヘッダー */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="text-center mb-8"
+        >
+          <h1 className="text-4xl font-bold text-gray-800 mb-2">コラム法記録</h1>
+          <p className="text-gray-600">思考の記録と分析を管理します</p>
+        </motion.div>
+        
+        {/* コントロールボタン */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.1 }}
+          className="bg-white rounded-xl shadow-lg p-6 mb-6"
+        >
+          <div className="flex flex-wrap gap-4 justify-between items-center">
+            <button
+              onClick={handleCreateNew}
+              className="bg-purple-600 text-white px-6 py-3 rounded-lg hover:bg-purple-700 transition-colors flex items-center gap-2 font-medium"
+            >
+              <Plus className="h-5 w-5" />
+              新しい記録
+            </button>
+            
+            <div className="flex flex-wrap gap-2">
               <Link
                 to="/backup-manager"
-                className="flex items-center space-x-1 bg-blue-600 hover:bg-blue-700 text-white px-3 py-2 rounded-lg font-medium transition-colors text-sm"
+                className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2 text-sm"
                 title="データ管理とバックアップ"
               >
                 <Shield className="h-4 w-4" />
-                <span>データ管理</span>
+                データ管理
               </Link>
-              
-              <button
-                onClick={validateData}
-                className="flex items-center space-x-1 bg-orange-600 hover:bg-orange-700 text-white px-3 py-2 rounded-lg font-medium transition-colors text-sm"
-                title="データの整合性をチェック"
-              >
-                <Shield className="h-4 w-4" />
-                <span>検証</span>
-              </button>
-              
-              <button
-                onClick={removeDuplicates}
-                className="flex items-center space-x-1 bg-red-600 hover:bg-red-700 text-white px-3 py-2 rounded-lg font-medium transition-colors text-sm"
-                title="重複データを削除"
-              >
-                <RefreshCw className="h-4 w-4" />
-                <span>重複削除</span>
-              </button>
-            </div>
-            
-            {/* デバッグ機能 */}
-            <button
-              onClick={debugStorage}
-              className="flex items-center space-x-2 bg-gray-600 hover:bg-gray-700 text-white px-3 py-2 rounded-lg font-medium transition-colors text-sm"
-              title="データの状態を確認"
-            >
-              <Brain className="h-4 w-4" />
-              <span>デバッグ</span>
-            </button>
-            
-            {/* 新規記録作成 */}
-            <button
-              onClick={handleCreateNew}
-              className="flex items-center space-x-2 bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg font-medium transition-colors"
-            >
-              <Plus className="h-5 w-5" />
-              <span>新規記録</span>
-            </button>
-          </div>
-        </div>
-
-        {/* 統計情報 */}
-        {records.length > 0 && (
-          <div className="mt-6 grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="bg-purple-50 p-4 rounded-lg border border-purple-200">
-              <div className="flex items-center space-x-2">
-                <Calendar className="h-4 w-4 text-purple-600" />
-                <span className="text-sm font-medium text-purple-800">総記録数</span>
-              </div>
-              <p className="text-2xl font-bold text-purple-900 mt-1">{records.length}</p>
-            </div>
-            
-            <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
-              <div className="flex items-center space-x-2">
-                <Clock className="h-4 w-4 text-blue-600" />
-                <span className="text-sm font-medium text-blue-800">今月の記録</span>
-              </div>
-              <p className="text-2xl font-bold text-blue-900 mt-1">
-                {records.filter(r => {
-                  const recordDate = new Date(r.createdAt);
-                  const now = new Date();
-                  return recordDate.getMonth() === now.getMonth() && 
-                         recordDate.getFullYear() === now.getFullYear();
-                }).length}
-              </p>
-            </div>
-            
-            <div className="bg-green-50 p-4 rounded-lg border border-green-200">
-              <div className="flex items-center space-x-2">
-                <TrendingUp className="h-4 w-4 text-green-600" />
-                <span className="text-sm font-medium text-green-800">平均感情変化</span>
-              </div>
-              <p className="text-2xl font-bold text-green-900 mt-1">
-                {records.length > 0 
-                  ? `${(records.reduce((sum, r) => sum + getEmotionChange(r), 0) / records.length).toFixed(1)}`
-                  : '0.0'
-                }
-              </p>
             </div>
           </div>
-        )}
-      </div>
+        </motion.div>
 
-      {/* 記録一覧 */}
-      <div className="bg-white rounded-xl shadow-sm border">
-        <div className="p-6 border-b">
-          <h2 className="text-lg font-semibold text-gray-900">記録一覧</h2>
-          <p className="text-sm text-gray-600">過去のコラム法記録を確認・編集できます</p>
-        </div>
+        {/* 記録一覧 */}
+        <div className="space-y-4">
 
         {records.length === 0 ? (
           <div className="p-12 text-center">
@@ -454,7 +323,7 @@ const ColumnMethodManager: React.FC<ColumnMethodManagerProps> = ({ onBack }) => 
                               emotionChange > 0 
                                 ? 'bg-green-100 text-green-800'
                                 : emotionChange < 0
-                                ? 'bg-red-100 text-red-800'
+                                ? 'bg-orange-100 text-orange-800'
                                 : 'bg-gray-100 text-gray-800'
                             }`}>
                               感情変化: {emotionChange > 0 ? '+' : ''}{emotionChange.toFixed(1)}
@@ -485,7 +354,7 @@ const ColumnMethodManager: React.FC<ColumnMethodManagerProps> = ({ onBack }) => 
                           </button>
                           <button
                             onClick={() => handleDelete(record.id)}
-                            className="p-2 text-red-600 hover:bg-red-100 rounded-lg transition-colors duration-200"
+                            className="p-2 text-orange-600 hover:bg-orange-100 rounded-lg transition-colors duration-200"
                             title="削除"
                           >
                             <Trash2 className="h-4 w-4" />
@@ -497,10 +366,10 @@ const ColumnMethodManager: React.FC<ColumnMethodManagerProps> = ({ onBack }) => 
                         {/* 自動思考 */}
                         <div>
                           <h4 className="text-sm font-medium text-gray-700 mb-2 flex items-center">
-                            <span className="w-2 h-2 bg-red-500 rounded-full mr-2"></span>
+                            <span className="w-2 h-2 bg-orange-500 rounded-full mr-2"></span>
                             自動思考
                           </h4>
-                          <p className="text-sm text-gray-600 bg-red-50 p-3 rounded-lg">
+                          <p className="text-sm text-gray-600 bg-orange-50 p-3 rounded-lg">
                             {record.automaticThought && record.automaticThought.length > 80 
                               ? `${record.automaticThought.substring(0, 80)}...` 
                               : record.automaticThought || '未記入'
@@ -545,7 +414,7 @@ const ColumnMethodManager: React.FC<ColumnMethodManagerProps> = ({ onBack }) => 
                                           key={idx}
                                           className={`rounded px-2 py-1 text-xs ${
                                             isNegative 
-                                              ? 'bg-red-100 text-red-800 border border-red-200' 
+                                              ? 'bg-orange-100 text-orange-800 border border-orange-200' 
                                               : 'bg-green-100 text-green-800 border border-green-200'
                                           }`}
                                         >
@@ -556,7 +425,7 @@ const ColumnMethodManager: React.FC<ColumnMethodManagerProps> = ({ onBack }) => 
                                           <div className="w-full bg-white bg-opacity-50 rounded-full h-1.5">
                                             <div
                                               className={`h-1.5 rounded-full transition-all duration-300 ${
-                                                isNegative ? 'bg-red-500' : 'bg-green-500'
+                                                isNegative ? 'bg-orange-500' : 'bg-green-500'
                                               }`}
                                               style={{ width: `${(emotion.intensity / 10) * 100}%` }}
                                             ></div>
@@ -594,7 +463,7 @@ const ColumnMethodManager: React.FC<ColumnMethodManagerProps> = ({ onBack }) => 
                                             key={idx}
                                             className={`rounded px-2 py-1 text-xs ${
                                               isNegative 
-                                                ? 'bg-red-100 text-red-800 border border-red-200' 
+                                                ? 'bg-orange-100 text-orange-800 border border-orange-200' 
                                                 : 'bg-green-100 text-green-800 border border-green-200'
                                             }`}
                                           >
@@ -605,7 +474,7 @@ const ColumnMethodManager: React.FC<ColumnMethodManagerProps> = ({ onBack }) => 
                                             <div className="w-full bg-white bg-opacity-50 rounded-full h-1.5">
                                               <div
                                                 className={`h-1.5 rounded-full transition-all duration-300 ${
-                                                  isNegative ? 'bg-red-500' : 'bg-green-500'
+                                                  isNegative ? 'bg-orange-500' : 'bg-green-500'
                                                 }`}
                                                 style={{ width: `${(emotion.intensity / 10) * 100}%` }}
                                               ></div>
@@ -821,8 +690,8 @@ const ColumnMethodManager: React.FC<ColumnMethodManagerProps> = ({ onBack }) => 
                               <div className="grid grid-cols-2 gap-3 text-xs">
                                 <div>
                                   <div className="flex items-center mb-1">
-                                    <TrendingDown className="h-3 w-3 text-red-500 mr-1" />
-                                    <span className="font-medium text-red-700">ネガティブ感情</span>
+                                    <TrendingDown className="h-3 w-3 text-orange-500 mr-1" />
+                                    <span className="font-medium text-orange-700">ネガティブ感情</span>
                                   </div>
                                   <div className="text-xs text-gray-600 space-y-1">
                                     <div>前: {originalCategorized.negative.length > 0 
@@ -831,7 +700,7 @@ const ColumnMethodManager: React.FC<ColumnMethodManagerProps> = ({ onBack }) => 
                                     <div>後: {newCategorized.negative.length > 0 
                                       ? Math.round(newCategorized.negative.reduce((sum, e) => sum + e.intensity, 0) / newCategorized.negative.length * 10) / 10 
                                       : 0} 点</div>
-                                    <div className={`font-medium ${improvement.negativeImprovement > 0 ? 'text-green-600' : improvement.negativeImprovement < 0 ? 'text-red-600' : 'text-gray-600'}`}>
+                                    <div className={`font-medium ${improvement.negativeImprovement > 0 ? 'text-green-600' : improvement.negativeImprovement < 0 ? 'text-orange-600' : 'text-gray-600'}`}>
                                       {improvement.negativeImprovement > 0 ? '↓' : improvement.negativeImprovement < 0 ? '↑' : '→'} 
                                       {Math.abs(improvement.negativeImprovement)} 点変化
                                     </div>
@@ -850,7 +719,7 @@ const ColumnMethodManager: React.FC<ColumnMethodManagerProps> = ({ onBack }) => 
                                     <div>後: {newCategorized.positive.length > 0 
                                       ? Math.round(newCategorized.positive.reduce((sum, e) => sum + e.intensity, 0) / newCategorized.positive.length * 10) / 10 
                                       : 0} 点</div>
-                                    <div className={`font-medium ${improvement.positiveIncrease > 0 ? 'text-green-600' : improvement.positiveIncrease < 0 ? 'text-red-600' : 'text-gray-600'}`}>
+                                    <div className={`font-medium ${improvement.positiveIncrease > 0 ? 'text-green-600' : improvement.positiveIncrease < 0 ? 'text-orange-600' : 'text-gray-600'}`}>
                                       {improvement.positiveIncrease > 0 ? '↑' : improvement.positiveIncrease < 0 ? '↓' : '→'} 
                                       {Math.abs(improvement.positiveIncrease)} 点変化
                                     </div>
@@ -870,14 +739,14 @@ const ColumnMethodManager: React.FC<ColumnMethodManagerProps> = ({ onBack }) => 
                                   <div className={`text-lg font-bold ${
                                     improvement.overallImprovement >= 1.5 ? 'text-green-600' : 
                                     improvement.overallImprovement >= 0.5 ? 'text-blue-600' : 
-                                    improvement.overallImprovement >= -0.5 ? 'text-gray-600' : 'text-red-600'
+                                    improvement.overallImprovement >= -0.5 ? 'text-gray-600' : 'text-orange-600'
                                   }`}>
                                     {improvement.overallImprovement > 0 ? '+' : ''}{improvement.overallImprovement}
                                   </div>
                                   <div className={`text-xs font-medium ${
                                     improvement.overallImprovement >= 1.5 ? 'text-green-600' : 
                                     improvement.overallImprovement >= 0.5 ? 'text-blue-600' : 
-                                    improvement.overallImprovement >= -0.5 ? 'text-gray-600' : 'text-red-600'
+                                    improvement.overallImprovement >= -0.5 ? 'text-gray-600' : 'text-orange-600'
                                   }`}>
                                     {improvement.improvementDescription}
                                   </div>
@@ -895,6 +764,7 @@ const ColumnMethodManager: React.FC<ColumnMethodManagerProps> = ({ onBack }) => 
           </motion.div>
         </motion.div>
       )}
+      </div>
     </div>
   );
 };

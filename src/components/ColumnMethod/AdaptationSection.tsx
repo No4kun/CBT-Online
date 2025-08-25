@@ -336,8 +336,8 @@ const AdaptationSection: React.FC<AdaptationSectionProps> = ({ data, onUpdate, o
                     <div className="grid md:grid-cols-2 gap-4">
                       <div>
                         <div className="flex items-center mb-2">
-                          <TrendingDown className="h-4 w-4 text-red-500 mr-1" />
-                          <span className="text-sm font-medium text-red-700">ネガティブ感情</span>
+                          <TrendingDown className="h-4 w-4 text-orange-500 mr-1" />
+                          <span className="text-sm font-medium text-orange-700">ネガティブ感情</span>
                         </div>
                         <div className="text-xs text-gray-600 space-y-1">
                           <div>前: {originalCategorized.negative.length > 0 
@@ -346,7 +346,7 @@ const AdaptationSection: React.FC<AdaptationSectionProps> = ({ data, onUpdate, o
                           <div>後: {newCategorized.negative.length > 0 
                             ? Math.round(newCategorized.negative.reduce((sum, e) => sum + e.intensity, 0) / newCategorized.negative.length * 10) / 10 
                             : 0} 点</div>
-                          <div className={`font-medium ${improvement.negativeImprovement > 0 ? 'text-green-600' : improvement.negativeImprovement < 0 ? 'text-red-600' : 'text-gray-600'}`}>
+                          <div className={`font-medium ${improvement.negativeImprovement > 0 ? 'text-green-600' : improvement.negativeImprovement < 0 ? 'text-orange-600' : 'text-gray-600'}`}>
                             {improvement.negativeImprovement > 0 ? '↓' : improvement.negativeImprovement < 0 ? '↑' : '→'} 
                             {Math.abs(improvement.negativeImprovement)} 点変化
                           </div>
@@ -365,7 +365,7 @@ const AdaptationSection: React.FC<AdaptationSectionProps> = ({ data, onUpdate, o
                           <div>後: {newCategorized.positive.length > 0 
                             ? Math.round(newCategorized.positive.reduce((sum, e) => sum + e.intensity, 0) / newCategorized.positive.length * 10) / 10 
                             : 0} 点</div>
-                          <div className={`font-medium ${improvement.positiveIncrease > 0 ? 'text-green-600' : improvement.positiveIncrease < 0 ? 'text-red-600' : 'text-gray-600'}`}>
+                          <div className={`font-medium ${improvement.positiveIncrease > 0 ? 'text-green-600' : improvement.positiveIncrease < 0 ? 'text-orange-600' : 'text-gray-600'}`}>
                             {improvement.positiveIncrease > 0 ? '↑' : improvement.positiveIncrease < 0 ? '↓' : '→'} 
                             {Math.abs(improvement.positiveIncrease)} 点変化
                           </div>
@@ -385,14 +385,14 @@ const AdaptationSection: React.FC<AdaptationSectionProps> = ({ data, onUpdate, o
                         <div className={`text-2xl font-bold ${
                           improvement.overallImprovement >= 1.5 ? 'text-green-600' : 
                           improvement.overallImprovement >= 0.5 ? 'text-blue-600' : 
-                          improvement.overallImprovement >= -0.5 ? 'text-gray-600' : 'text-red-600'
+                          improvement.overallImprovement >= -0.5 ? 'text-gray-600' : 'text-orange-600'
                         }`}>
                           {improvement.overallImprovement > 0 ? '+' : ''}{improvement.overallImprovement}
                         </div>
                         <div className={`text-sm font-medium ${
                           improvement.overallImprovement >= 1.5 ? 'text-green-600' : 
                           improvement.overallImprovement >= 0.5 ? 'text-blue-600' : 
-                          improvement.overallImprovement >= -0.5 ? 'text-gray-600' : 'text-red-600'
+                          improvement.overallImprovement >= -0.5 ? 'text-gray-600' : 'text-orange-600'
                         }`}>
                           {improvement.improvementDescription}
                         </div>

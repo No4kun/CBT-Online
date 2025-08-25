@@ -56,7 +56,7 @@ const SituationSection: React.FC<SituationSectionProps> = ({ data, onUpdate }) =
     if (intensity <= 3) return 'from-green-400 to-green-500';
     if (intensity <= 5) return 'from-yellow-400 to-yellow-500';
     if (intensity <= 7) return 'from-orange-400 to-orange-500';
-    return 'from-red-400 to-red-500';
+    return 'from-orange-400 to-orange-500';
   };
 
   return (
@@ -103,7 +103,7 @@ const SituationSection: React.FC<SituationSectionProps> = ({ data, onUpdate }) =
       {/* 感情 */}
       <div className="space-y-4">
         <label className="flex items-center space-x-2 text-lg font-medium text-calm-800">
-          <Heart className="h-5 w-5 text-red-500" />
+          <Heart className="h-5 w-5 text-orange-500" />
           <span>感情とその強さ</span>
         </label>
         <p className="text-sm text-calm-600">
@@ -119,18 +119,18 @@ const SituationSection: React.FC<SituationSectionProps> = ({ data, onUpdate }) =
               animate={{ opacity: 1, y: 0, scale: 1 }}
               exit={{ opacity: 0, y: -20, scale: 0.95 }}
               transition={{ duration: 0.3, delay: index * 0.1 }}
-              className="card p-4 space-y-4 border-l-4 border-red-300"
+              className="card p-4 space-y-4 border-l-4 border-orange-300"
             >
               <div className="flex items-center justify-between">
                 <h4 className="text-lg font-medium text-calm-800 flex items-center space-x-2">
-                  <span className="w-3 h-3 rounded-full bg-red-400"></span>
+                  <span className="w-3 h-3 rounded-full bg-orange-400"></span>
                   <span>{emotionEntry.emotion}</span>
                 </h4>
                 <motion.button
                   whileHover={{ scale: 1.1 }}
                   whileTap={{ scale: 0.9 }}
                   onClick={() => removeEmotion(emotionEntry.emotion)}
-                  className="p-2 text-red-500 hover:bg-red-50 rounded-lg transition-colors"
+                  className="p-2 text-orange-500 hover:bg-orange-50 rounded-lg transition-colors"
                 >
                   <X className="h-4 w-4" />
                 </motion.button>
@@ -156,7 +156,7 @@ const SituationSection: React.FC<SituationSectionProps> = ({ data, onUpdate }) =
                   max="10"
                   value={emotionEntry.intensity}
                   onChange={(e) => updateEmotionIntensity(emotionEntry.emotion, parseInt(e.target.value))}
-                  className="w-full h-3 bg-gradient-to-r from-green-200 via-yellow-200 to-red-200 rounded-lg appearance-none cursor-pointer"
+                  className="w-full h-3 bg-gradient-to-r from-green-200 via-yellow-200 to-orange-200 rounded-lg appearance-none cursor-pointer"
                   style={{
                     background: `linear-gradient(to right, 
                       #bbf7d0 0%, 
@@ -223,7 +223,7 @@ const SituationSection: React.FC<SituationSectionProps> = ({ data, onUpdate }) =
                     className={`px-3 py-1 text-sm rounded-lg transition-colors ${
                       isAlreadyAdded
                         ? 'bg-calm-100 text-calm-400 cursor-not-allowed'
-                        : 'bg-red-50 text-red-600 hover:bg-red-100'
+                        : 'bg-orange-50 text-orange-600 hover:bg-orange-100'
                     }`}
                   >
                     {emotion}
