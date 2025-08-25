@@ -20,7 +20,8 @@ import {
   calculateImprovement, 
   getEmotionColorWithIntensity,
   getEmotionBarColor,
-  categorizeEmotions
+  categorizeEmotions,
+  getEmotionType
 } from '../../utils/emotionClassification';
 
 interface ColumnMethodManagerProps {
@@ -632,7 +633,7 @@ const ColumnMethodManager: React.FC<ColumnMethodManagerProps> = () => {
                           <div className="w-full bg-gray-200 rounded-full h-2">
                             <div 
                               className={`h-2 rounded-full ${
-                                ['嬉しい', '楽しい', '幸せ', '満足', '安心', '希望', '感謝', '愛情', '自信', '達成感', '興奮', 'リラックス', '平和', '充実'].includes(emotion.emotion) 
+                                getEmotionType(emotion) === 'positive'
                                   ? 'bg-green-600' 
                                   : 'bg-red-600'
                               }`} 
@@ -694,7 +695,7 @@ const ColumnMethodManager: React.FC<ColumnMethodManagerProps> = () => {
                           <div className="w-full bg-gray-200 rounded-full h-2">
                             <div
                               className={`h-2 rounded-full transition-all duration-300 ${
-                                ['嬉しい', '楽しい', '幸せ', '満足', '安心', '希望', '感謝', '愛情', '自信', '達成感', '興奮', 'リラックス', '平和', '充実'].includes(emotion.emotion) 
+                                getEmotionType(emotion) === 'positive'
                                   ? 'bg-green-600' 
                                   : 'bg-red-600'
                               }`}
