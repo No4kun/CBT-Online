@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import { 
   Plus, 
@@ -19,16 +19,16 @@ import type { ColumnEntry } from '../../types';
 import ColumnMethodForm from './ColumnMethodForm';
 import { 
   calculateImprovement, 
-  getEmotionColor,
-  categorizeEmotions,
-  getEmotionType
+  getEmotionColorWithIntensity,
+  getEmotionBarColor,
+  categorizeEmotions
 } from '../../utils/emotionClassification';
 
 interface ColumnMethodManagerProps {
-  onBack?: () => void;
+  // props can be added here if needed
 }
 
-const ColumnMethodManager: React.FC<ColumnMethodManagerProps> = ({ onBack }) => {
+const ColumnMethodManager: React.FC<ColumnMethodManagerProps> = () => {
   const [records, setRecords] = useState<ColumnEntry[]>([]);
   const [selectedRecord, setSelectedRecord] = useState<ColumnEntry | null>(null);
   const [showForm, setShowForm] = useState(false);
@@ -366,10 +366,10 @@ const ColumnMethodManager: React.FC<ColumnMethodManagerProps> = ({ onBack }) => 
                         {/* 自動思考 */}
                         <div>
                           <h4 className="text-sm font-medium text-gray-700 mb-2 flex items-center">
-                            <span className="w-2 h-2 bg-orange-500 rounded-full mr-2"></span>
+                            <span className="w-2 h-2 bg-purple-400 rounded-full mr-2"></span>
                             自動思考
                           </h4>
-                          <p className="text-sm text-gray-600 bg-orange-50 p-3 rounded-lg">
+                          <p className="text-sm text-gray-600 bg-purple-50 p-3 rounded-lg border border-purple-200">
                             {record.automaticThought && record.automaticThought.length > 80 
                               ? `${record.automaticThought.substring(0, 80)}...` 
                               : record.automaticThought || '未記入'
@@ -381,10 +381,10 @@ const ColumnMethodManager: React.FC<ColumnMethodManagerProps> = ({ onBack }) => 
                         {record.adaptiveThought && (
                           <div>
                             <h4 className="text-sm font-medium text-gray-700 mb-2 flex items-center">
-                              <span className="w-2 h-2 bg-blue-500 rounded-full mr-2"></span>
+                              <span className="w-2 h-2 bg-green-400 rounded-full mr-2"></span>
                               適応思考
                             </h4>
-                            <p className="text-sm text-gray-600 bg-blue-50 p-3 rounded-lg">
+                            <p className="text-sm text-gray-600 bg-green-50 p-3 rounded-lg border border-green-200">
                               {record.adaptiveThought.length > 80 
                                 ? `${record.adaptiveThought.substring(0, 80)}...` 
                                 : record.adaptiveThought
@@ -396,10 +396,10 @@ const ColumnMethodManager: React.FC<ColumnMethodManagerProps> = ({ onBack }) => 
                         {/* 感情の変化 */}
                         <div>
                           <h4 className="text-sm font-medium text-gray-700 mb-2 flex items-center">
-                            <span className="w-2 h-2 bg-green-500 rounded-full mr-2"></span>
+                            <span className="w-2 h-2 bg-yellow-400 rounded-full mr-2"></span>
                             感情の変化
                           </h4>
-                          <div className="bg-gray-50 p-3 rounded-lg">
+                          <div className="bg-yellow-50 p-3 rounded-lg border border-yellow-200">
                             <div className="flex items-start justify-between gap-3">
                               {/* 変化前の感情 */}
                               <div className="flex-1">
@@ -407,15 +407,11 @@ const ColumnMethodManager: React.FC<ColumnMethodManagerProps> = ({ onBack }) => 
                                 <div className="space-y-1">
                                   {record.emotions && record.emotions.length > 0 ? (
                                     record.emotions.slice(0, 3).map((emotion, idx) => {
-                                      const type = getEmotionType(emotion);
-                                      const isNegative = type === 'negative';
                                       return (
                                         <div
                                           key={idx}
                                           className={`rounded px-2 py-1 text-xs ${
-                                            isNegative 
-                                              ? 'bg-orange-100 text-orange-800 border border-orange-200' 
-                                              : 'bg-green-100 text-green-800 border border-green-200'
+                                            getEmotionColorWithIntensity(emotion)
                                           }`}
                                         >
                                           <div className="flex items-center justify-between mb-1">
@@ -425,7 +421,7 @@ const ColumnMethodManager: React.FC<ColumnMethodManagerProps> = ({ onBack }) => 
                                           <div className="w-full bg-white bg-opacity-50 rounded-full h-1.5">
                                             <div
                                               className={`h-1.5 rounded-full transition-all duration-300 ${
-                                                isNegative ? 'bg-orange-500' : 'bg-green-500'
+                                                getEmotionBarColor(emotion)
                                               }`}
                                               style={{ width: `${(emotion.intensity / 10) * 100}%` }}
                                             ></div>
@@ -456,15 +452,11 @@ const ColumnMethodManager: React.FC<ColumnMethodManagerProps> = ({ onBack }) => 
                                   {record.newEmotions && record.newEmotions.length > 0 ? (
                                     <>
                                       {record.newEmotions.slice(0, 3).map((emotion, idx) => {
-                                        const type = getEmotionType(emotion);
-                                        const isNegative = type === 'negative';
                                         return (
                                           <div
                                             key={idx}
                                             className={`rounded px-2 py-1 text-xs ${
-                                              isNegative 
-                                                ? 'bg-orange-100 text-orange-800 border border-orange-200' 
-                                                : 'bg-green-100 text-green-800 border border-green-200'
+                                              getEmotionColorWithIntensity(emotion)
                                             }`}
                                           >
                                             <div className="flex items-center justify-between mb-1">
@@ -474,7 +466,7 @@ const ColumnMethodManager: React.FC<ColumnMethodManagerProps> = ({ onBack }) => 
                                             <div className="w-full bg-white bg-opacity-50 rounded-full h-1.5">
                                               <div
                                                 className={`h-1.5 rounded-full transition-all duration-300 ${
-                                                  isNegative ? 'bg-orange-500' : 'bg-green-500'
+                                                  getEmotionBarColor(emotion)
                                                 }`}
                                                 style={{ width: `${(emotion.intensity / 10) * 100}%` }}
                                               ></div>
@@ -571,14 +563,18 @@ const ColumnMethodManager: React.FC<ColumnMethodManagerProps> = ({ onBack }) => 
                     <h3 className="text-sm font-medium text-gray-700 mb-2">感情</h3>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                       {selectedRecord.emotions.map((emotion, idx) => (
-                        <div key={idx} className="bg-gray-50 p-4 rounded-lg">
+                        <div key={idx} className={`p-4 rounded-lg ${getEmotionColorWithIntensity(emotion)}`}>
                           <div className="flex justify-between items-center mb-2">
                             <span className="font-medium text-gray-800">{emotion.emotion}</span>
-                            <span className="text-sm font-medium text-blue-600">{emotion.intensity}/10</span>
+                            <span className="text-sm font-medium">{emotion.intensity}/10</span>
                           </div>
                           <div className="w-full bg-gray-200 rounded-full h-2">
                             <div 
-                              className="bg-blue-600 h-2 rounded-full" 
+                              className={`h-2 rounded-full ${
+                                ['嬉しい', '楽しい', '幸せ', '満足', '安心', '希望', '感謝', '愛情', '自信', '達成感', '興奮', 'リラックス', '平和', '充実'].includes(emotion.emotion) 
+                                  ? 'bg-green-600' 
+                                  : 'bg-red-600'
+                              }`} 
                               style={{ width: `${emotion.intensity * 10}%` }}
                             ></div>
                           </div>
@@ -628,15 +624,19 @@ const ColumnMethodManager: React.FC<ColumnMethodManagerProps> = ({ onBack }) => 
                       {selectedRecord.newEmotions.map((emotion, idx) => (
                         <div
                           key={idx}
-                          className="bg-green-50 border border-green-200 rounded-lg p-3"
+                          className={`rounded-lg p-3 ${getEmotionColorWithIntensity(emotion)}`}
                         >
                           <div className="flex justify-between items-center mb-2">
-                            <span className="font-medium text-green-800">{emotion.emotion}</span>
-                            <span className="text-sm text-green-600">{emotion.intensity}/10</span>
+                            <span className="font-medium text-gray-800">{emotion.emotion}</span>
+                            <span className="text-sm font-medium">{emotion.intensity}/10</span>
                           </div>
-                          <div className="w-full bg-green-200 rounded-full h-2">
+                          <div className="w-full bg-gray-200 rounded-full h-2">
                             <div
-                              className="bg-green-500 h-2 rounded-full transition-all duration-300"
+                              className={`h-2 rounded-full transition-all duration-300 ${
+                                ['嬉しい', '楽しい', '幸せ', '満足', '安心', '希望', '感謝', '愛情', '自信', '達成感', '興奮', 'リラックス', '平和', '充実'].includes(emotion.emotion) 
+                                  ? 'bg-green-600' 
+                                  : 'bg-red-600'
+                              }`}
                               style={{ width: `${(emotion.intensity / 10) * 100}%` }}
                             ></div>
                           </div>
@@ -663,7 +663,7 @@ const ColumnMethodManager: React.FC<ColumnMethodManagerProps> = ({ onBack }) => 
                                 <h4 className="text-xs font-medium text-gray-600 mb-2">適応思考前</h4>
                                 <div className="space-y-2">
                                   {selectedRecord.emotions.map((emotion, idx) => (
-                                    <div key={idx} className={`flex justify-between items-center p-2 rounded border text-sm ${getEmotionColor(emotion)}`}>
+                                    <div key={idx} className={`flex justify-between items-center p-2 rounded border text-sm ${getEmotionColorWithIntensity(emotion)}`}>
                                       <span>{emotion.emotion}</span>
                                       <span className="font-medium">{emotion.intensity}/10</span>
                                     </div>
@@ -675,7 +675,7 @@ const ColumnMethodManager: React.FC<ColumnMethodManagerProps> = ({ onBack }) => 
                                 <h4 className="text-xs font-medium text-gray-600 mb-2">適応思考後</h4>
                                 <div className="space-y-2">
                                   {selectedRecord.newEmotions.map((emotion, idx) => (
-                                    <div key={idx} className={`flex justify-between items-center p-2 rounded border text-sm ${getEmotionColor(emotion)}`}>
+                                    <div key={idx} className={`flex justify-between items-center p-2 rounded border text-sm ${getEmotionColorWithIntensity(emotion)}`}>
                                       <span>{emotion.emotion}</span>
                                       <span className="font-medium">{emotion.intensity}/10</span>
                                     </div>

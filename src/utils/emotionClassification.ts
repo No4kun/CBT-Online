@@ -224,3 +224,51 @@ export const getEmotionColor = (emotionOrName: string | EmotionEntry): string =>
       return 'bg-gray-100 text-gray-800 border-gray-200';
   }
 };
+
+// 感情の強度に応じた濃淡のある色を取得
+export const getEmotionColorWithIntensity = (emotion: EmotionEntry): string => {
+  const type = getEmotionType(emotion);
+  const intensity = emotion.intensity || 5;
+  
+  // 強度を3段階に分ける：低(1-3)、中(4-6)、高(7-10)
+  const level = intensity <= 3 ? 'light' : intensity <= 6 ? 'medium' : 'dark';
+  
+  if (type === 'negative') {
+    switch (level) {
+      case 'light':
+        return 'bg-red-50 text-red-600 border-red-100';
+      case 'medium':
+        return 'bg-red-100 text-red-700 border-red-200';
+      case 'dark':
+        return 'bg-red-200 text-red-800 border-red-300';
+      default:
+        return 'bg-red-100 text-red-800 border-red-200';
+    }
+  } else if (type === 'positive') {
+    switch (level) {
+      case 'light':
+        return 'bg-green-50 text-green-600 border-green-100';
+      case 'medium':
+        return 'bg-green-100 text-green-700 border-green-200';
+      case 'dark':
+        return 'bg-green-200 text-green-800 border-green-300';
+      default:
+        return 'bg-green-100 text-green-800 border-green-200';
+    }
+  } else {
+    return 'bg-gray-100 text-gray-800 border-gray-200';
+  }
+};
+
+// プログレスバーの色を取得
+export const getEmotionBarColor = (emotion: EmotionEntry): string => {
+  const type = getEmotionType(emotion);
+  
+  if (type === 'negative') {
+    return 'bg-red-500';
+  } else if (type === 'positive') {
+    return 'bg-green-500';
+  } else {
+    return 'bg-gray-500';
+  }
+};
