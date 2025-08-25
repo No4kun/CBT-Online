@@ -199,7 +199,7 @@ const BehaviorExperimentPage: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 to-indigo-100 p-4">
+    <div className="min-h-screen bg-gray-50 p-4">
       <div className="max-w-4xl mx-auto">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -236,6 +236,56 @@ const BehaviorExperimentPage: React.FC = () => {
             </div>
           </div>
         </motion.div>
+
+        {/* 統計情報 */}
+        {experiments.length > 0 && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.2 }}
+            className="mb-6 grid grid-cols-1 md:grid-cols-4 gap-4"
+          >
+            <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
+              <div className="flex items-center space-x-2">
+                <Shield className="h-4 w-4 text-blue-600" />
+                <span className="text-sm font-medium text-blue-800">総実験数</span>
+              </div>
+              <p className="text-2xl font-bold text-blue-900 mt-1">{experiments.length}</p>
+            </div>
+            
+            <div className="bg-green-50 p-4 rounded-lg border border-green-200">
+              <div className="flex items-center space-x-2">
+                <ChevronUpIcon className="h-4 w-4 text-green-600" />
+                <span className="text-sm font-medium text-green-800">完了した実験</span>
+              </div>
+              <p className="text-2xl font-bold text-green-900 mt-1">
+                {experiments.filter(exp => exp.result).length}
+              </p>
+            </div>
+            
+            <div className="bg-purple-50 p-4 rounded-lg border border-purple-200">
+              <div className="flex items-center space-x-2">
+                <ChevronDownIcon className="h-4 w-4 text-purple-600" />
+                <span className="text-sm font-medium text-purple-800">計画中の実験</span>
+              </div>
+              <p className="text-2xl font-bold text-purple-900 mt-1">
+                {experiments.filter(exp => !exp.result).length}
+              </p>
+            </div>
+            
+            <div className="bg-orange-50 p-4 rounded-lg border border-orange-200">
+              <div className="flex items-center space-x-2">
+                <Shield className="h-4 w-4 text-orange-600" />
+                <span className="text-sm font-medium text-orange-800">完了率</span>
+              </div>
+              <p className="text-2xl font-bold text-orange-900 mt-1">
+                {experiments.length > 0 
+                  ? `${Math.round((experiments.filter(exp => exp.result).length / experiments.length) * 100)}%`
+                  : '0%'}
+              </p>
+            </div>
+          </motion.div>
+        )}
 
         {/* 実験記録一覧 */}
         <div className="space-y-4">

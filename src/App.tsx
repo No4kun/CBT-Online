@@ -10,7 +10,7 @@ import BehaviorExperiment from './pages/BehaviorExperiment';
 function App() {
   return (
     <Router>
-      <div className="min-h-screen bg-gradient-to-br from-calm-50 to-primary-50">
+      <div className="min-h-screen bg-gray-50">
         <Header />
         <motion.main
           initial={{ opacity: 0 }}

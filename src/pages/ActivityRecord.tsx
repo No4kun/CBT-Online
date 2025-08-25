@@ -81,7 +81,7 @@ const ActivityRecordPage: React.FC = () => {
 
   if (showForm) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-orange-50 to-amber-100">
+      <div className="min-h-screen bg-gray-50">
         <div className="max-w-6xl mx-auto p-6">
           <button
             onClick={() => {
@@ -105,7 +105,7 @@ const ActivityRecordPage: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-orange-50 to-amber-100 p-4">
+    <div className="min-h-screen bg-gray-50 p-4">
       <div className="max-w-6xl mx-auto">
         {/* ページヘッダー */}
         <motion.div

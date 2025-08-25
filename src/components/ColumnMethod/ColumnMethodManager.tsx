@@ -11,7 +11,6 @@ import {
   TrendingUp,
   TrendingDown,
   BarChart3,
-  Eye,
   X,
   Shield
 } from 'lucide-react';
@@ -231,7 +230,7 @@ const ColumnMethodManager: React.FC<ColumnMethodManagerProps> = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-cyan-100 p-4">
+    <div className="min-h-screen bg-gray-50 p-4">
       <div className="max-w-6xl mx-auto">
         {/* ページヘッダー */}
         <motion.div
@@ -271,6 +270,68 @@ const ColumnMethodManager: React.FC<ColumnMethodManagerProps> = () => {
             </div>
           </div>
         </motion.div>
+        
+        {/* 統計情報 */}
+        {records.length > 0 && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.2 }}
+            className="mb-6 grid grid-cols-1 md:grid-cols-4 gap-4"
+          >
+            <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
+              <div className="flex items-center space-x-2">
+                <Calendar className="h-4 w-4 text-blue-600" />
+                <span className="text-sm font-medium text-blue-800">記録日数</span>
+              </div>
+              <p className="text-2xl font-bold text-blue-900 mt-1">{records.length}</p>
+            </div>
+            
+            <div className="bg-green-50 p-4 rounded-lg border border-green-200">
+              <div className="flex items-center space-x-2">
+                <Brain className="h-4 w-4 text-green-600" />
+                <span className="text-sm font-medium text-green-800">記録した感情数</span>
+              </div>
+              <p className="text-2xl font-bold text-green-900 mt-1">
+                {records.reduce((sum, r) => sum + (r.emotions?.length || 0), 0)}
+              </p>
+            </div>
+            
+            <div className="bg-purple-50 p-4 rounded-lg border border-purple-200">
+              <div className="flex items-center space-x-2">
+                <TrendingDown className="h-4 w-4 text-purple-600" />
+                <span className="text-sm font-medium text-purple-800">平均感情強度（変化前）</span>
+              </div>
+              <p className="text-2xl font-bold text-purple-900 mt-1">
+                {records.length > 0 && records.some(r => r.emotions?.length > 0)
+                  ? (records.reduce((sum, r) => {
+                      const avgIntensity = r.emotions?.length > 0 
+                        ? r.emotions.reduce((eSum, e) => eSum + e.intensity, 0) / r.emotions.length 
+                        : 0;
+                      return sum + avgIntensity;
+                    }, 0) / records.filter(r => r.emotions?.length > 0).length).toFixed(1)
+                  : '0.0'}
+              </p>
+            </div>
+            
+            <div className="bg-orange-50 p-4 rounded-lg border border-orange-200">
+              <div className="flex items-center space-x-2">
+                <TrendingUp className="h-4 w-4 text-orange-600" />
+                <span className="text-sm font-medium text-orange-800">平均感情強度（変化後）</span>
+              </div>
+              <p className="text-2xl font-bold text-orange-900 mt-1">
+                {records.length > 0 && records.some(r => r.newEmotions?.length > 0)
+                  ? (records.reduce((sum, r) => {
+                      const avgIntensity = r.newEmotions?.length > 0 
+                        ? r.newEmotions.reduce((eSum, e) => eSum + e.intensity, 0) / r.newEmotions.length 
+                        : 0;
+                      return sum + avgIntensity;
+                    }, 0) / records.filter(r => r.newEmotions?.length > 0).length).toFixed(1)
+                  : '0.0'}
+              </p>
+            </div>
+          </motion.div>
+        )}
 
         {/* 記録一覧 */}
         <div className="space-y-4">
@@ -303,7 +364,8 @@ const ColumnMethodManager: React.FC<ColumnMethodManagerProps> = () => {
                       initial={{ opacity: 0, y: 20 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ delay: 0.1 * index }}
-                      className="bg-white rounded-xl shadow-lg p-6 hover:shadow-xl transition-shadow duration-300 border"
+                      className="bg-white rounded-xl shadow-lg p-6 hover:shadow-xl transition-shadow duration-300 border cursor-pointer"
+                      onClick={() => handleViewDetails(record)}
                     >
                       <div className="flex justify-between items-start mb-4">
                         <div className="flex-1">
@@ -339,21 +401,20 @@ const ColumnMethodManager: React.FC<ColumnMethodManagerProps> = () => {
                         
                         <div className="flex items-center space-x-2 ml-4">
                           <button
-                            onClick={() => handleViewDetails(record)}
-                            className="p-2 text-blue-600 hover:bg-blue-100 rounded-lg transition-colors duration-200"
-                            title="詳細を見る"
-                          >
-                            <Eye className="h-4 w-4" />
-                          </button>
-                          <button
-                            onClick={() => handleEdit(record)}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleEdit(record);
+                            }}
                             className="p-2 text-purple-600 hover:bg-purple-100 rounded-lg transition-colors duration-200"
                             title="編集"
                           >
                             <Edit className="h-4 w-4" />
                           </button>
                           <button
-                            onClick={() => handleDelete(record.id)}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleDelete(record.id);
+                            }}
                             className="p-2 text-orange-600 hover:bg-orange-100 rounded-lg transition-colors duration-200"
                             title="削除"
                           >
@@ -396,10 +457,10 @@ const ColumnMethodManager: React.FC<ColumnMethodManagerProps> = () => {
                         {/* 感情の変化 */}
                         <div>
                           <h4 className="text-sm font-medium text-gray-700 mb-2 flex items-center">
-                            <span className="w-2 h-2 bg-yellow-400 rounded-full mr-2"></span>
+                            <span className="w-2 h-2 bg-orange-300 rounded-full mr-2"></span>
                             感情の変化
                           </h4>
-                          <div className="bg-yellow-50 p-3 rounded-lg border border-yellow-200">
+                          <div className="bg-orange-50 p-3 rounded-lg border border-orange-200">
                             <div className="flex items-start justify-between gap-3">
                               {/* 変化前の感情 */}
                               <div className="flex-1">
