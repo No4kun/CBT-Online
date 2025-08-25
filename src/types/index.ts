@@ -78,7 +78,7 @@ export interface BehaviorExperimentPlan {
   id: string;
   scheduledDateTime: string;
   plannedAction: string;
-  expectedTroubles: string;
+  expectedTroubles: string; // 予想される結果やその他備考
   expectedJoy: number; // 0-100
   expectedAchievement: number; // 0-100
   successProbability: number; // 0-100

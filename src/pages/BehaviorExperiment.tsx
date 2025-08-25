@@ -388,7 +388,7 @@ const BehaviorExperimentPage: React.FC = () => {
                         </div>
                         
                         <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-1">予想されるトラブルと対処</label>
+                          <label className="block text-sm font-medium text-gray-700 mb-1">予想される結果やその他備考</label>
                           <p className="text-gray-900 whitespace-pre-wrap">{experiment.plan.expectedTroubles}</p>
                         </div>
                         

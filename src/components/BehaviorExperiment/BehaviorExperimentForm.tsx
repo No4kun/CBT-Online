@@ -21,7 +21,7 @@ const BehaviorExperimentForm: React.FC<BehaviorExperimentFormProps> = ({
 }) => {
   // 実験計画フォームの状態
   const [planForm, setPlanForm] = useState({
-    scheduledDateTime: '',
+    scheduledDateTime: new Date().toISOString().slice(0, 16), // デフォルトを現在時刻に設定
     plannedAction: '',
     expectedTroubles: '',
     expectedJoy: 50,
@@ -31,7 +31,7 @@ const BehaviorExperimentForm: React.FC<BehaviorExperimentFormProps> = ({
 
   // 実験結果フォームの状態
   const [resultForm, setResultForm] = useState({
-    actualDateTime: '',
+    actualDateTime: new Date().toISOString().slice(0, 16), // デフォルトを現在時刻に設定
     actualAction: '',
     result: '',
     learnings: '',
@@ -42,7 +42,7 @@ const BehaviorExperimentForm: React.FC<BehaviorExperimentFormProps> = ({
   useEffect(() => {
     if (mode === 'plan' && editingPlan) {
       setPlanForm({
-        scheduledDateTime: editingPlan.scheduledDateTime,
+        scheduledDateTime: editingPlan.scheduledDateTime || new Date().toISOString().slice(0, 16),
         plannedAction: editingPlan.plannedAction,
         expectedTroubles: editingPlan.expectedTroubles,
         expectedJoy: editingPlan.expectedJoy,
@@ -52,7 +52,7 @@ const BehaviorExperimentForm: React.FC<BehaviorExperimentFormProps> = ({
     } else if (mode === 'result') {
       if (editingResult) {
         setResultForm({
-          actualDateTime: editingResult.actualDateTime,
+          actualDateTime: editingResult.actualDateTime || new Date().toISOString().slice(0, 16),
           actualAction: editingResult.actualAction,
           result: editingResult.result,
           learnings: editingResult.learnings,
@@ -63,7 +63,7 @@ const BehaviorExperimentForm: React.FC<BehaviorExperimentFormProps> = ({
         // 計画データを結果フォームの初期値として使用
         setResultForm(prev => ({
           ...prev,
-          actualDateTime: editingPlan.scheduledDateTime,
+          actualDateTime: editingPlan.scheduledDateTime || new Date().toISOString().slice(0, 16),
           actualAction: editingPlan.plannedAction,
           actualJoy: editingPlan.expectedJoy,
           actualAchievement: editingPlan.expectedAchievement
@@ -74,7 +74,25 @@ const BehaviorExperimentForm: React.FC<BehaviorExperimentFormProps> = ({
 
   const formatDateTimeForInput = (dateTime: string): string => {
     if (!dateTime) return '';
-    return new Date(dateTime).toISOString().slice(0, 16);
+    
+    try {
+      // 既にISO形式（YYYY-MM-DDTHH:mm）の場合はそのまま返す
+      if (dateTime.match(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/)) {
+        return dateTime;
+      }
+      
+      // Dateオブジェクトに変換してからフォーマット
+      const date = new Date(dateTime);
+      if (isNaN(date.getTime())) {
+        // 無効な日付の場合は現在時刻を返す
+        return new Date().toISOString().slice(0, 16);
+      }
+      
+      return date.toISOString().slice(0, 16);
+    } catch (error) {
+      // エラーの場合は現在時刻を返す
+      return new Date().toISOString().slice(0, 16);
+    }
   };
 
   const handlePlanSubmit = (e: React.FormEvent): void => {
@@ -180,13 +198,19 @@ const BehaviorExperimentForm: React.FC<BehaviorExperimentFormProps> = ({
                 <input
                   type="datetime-local"
                   value={formatDateTimeForInput(planForm.scheduledDateTime)}
-                  onChange={(e) => setPlanForm(prev => ({
-                    ...prev,
-                    scheduledDateTime: e.target.value
-                  }))}
+                  onChange={(e) => {
+                    console.log('日時変更:', e.target.value); // デバッグ用
+                    setPlanForm(prev => ({
+                      ...prev,
+                      scheduledDateTime: e.target.value
+                    }));
+                  }}
                   className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
                   required
                 />
+                <p className="text-xs text-gray-500 mt-1">
+                  日付と時刻を選択してください
+                </p>
               </div>
 
               {/* 行うこと */}
@@ -207,10 +231,10 @@ const BehaviorExperimentForm: React.FC<BehaviorExperimentFormProps> = ({
                 />
               </div>
 
-              {/* 予想されるトラブルと対処 */}
+              {/* 予想される結果やその他備考 */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  予想されるトラブルと対処
+                  予想される結果やその他備考
                 </label>
                 <textarea
                   value={planForm.expectedTroubles}
@@ -220,7 +244,7 @@ const BehaviorExperimentForm: React.FC<BehaviorExperimentFormProps> = ({
                   }))}
                   className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
                   rows={4}
-                  placeholder="起こりうるトラブルとその対処法を記入してください"
+                  placeholder="予想される結果や気になることなど、自由に記入してください"
                 />
               </div>
 
@@ -277,13 +301,19 @@ const BehaviorExperimentForm: React.FC<BehaviorExperimentFormProps> = ({
                 <input
                   type="datetime-local"
                   value={formatDateTimeForInput(resultForm.actualDateTime)}
-                  onChange={(e) => setResultForm(prev => ({
-                    ...prev,
-                    actualDateTime: e.target.value
-                  }))}
+                  onChange={(e) => {
+                    console.log('実施日時変更:', e.target.value); // デバッグ用
+                    setResultForm(prev => ({
+                      ...prev,
+                      actualDateTime: e.target.value
+                    }));
+                  }}
                   className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
                   required
                 />
+                <p className="text-xs text-gray-500 mt-1">
+                  実際に行った日付と時刻を選択してください
+                </p>
               </div>
 
               {/* 行ったこと */}
