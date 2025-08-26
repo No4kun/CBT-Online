@@ -41,6 +41,7 @@ const ColumnMethodForm: React.FC<ColumnMethodFormProps> = ({
       emotions: [],
       automaticThought: '',
       evidence: '',
+      cognitiveDistortions: [],
       counterEvidence: '',
       adaptiveThought: '',
       emotionChange: 5,
@@ -105,6 +106,7 @@ const ColumnMethodForm: React.FC<ColumnMethodFormProps> = ({
       emotions: entry.emotions || [],
       automaticThought: entry.automaticThought || '',
       evidence: entry.evidence || '',
+      cognitiveDistortions: entry.cognitiveDistortions || [],
       counterEvidence: entry.counterEvidence || '',
       adaptiveThought: entry.adaptiveThought || '',
       emotionChange: entry.emotionChange || 5,
@@ -124,6 +126,7 @@ const ColumnMethodForm: React.FC<ColumnMethodFormProps> = ({
         emotions: [],
         automaticThought: '',
         evidence: '',
+        cognitiveDistortions: [],
         counterEvidence: '',
         adaptiveThought: '',
         emotionChange: 5,
@@ -165,7 +168,8 @@ const ColumnMethodForm: React.FC<ColumnMethodFormProps> = ({
           <ThoughtSection 
             data={{
               automaticThought: entry.automaticThought || '',
-              evidence: entry.evidence || ''
+              evidence: entry.evidence || '',
+              cognitiveDistortions: entry.cognitiveDistortions || []
             }}
             onUpdate={updateEntry} 
           />

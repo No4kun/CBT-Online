@@ -5,6 +5,19 @@ export interface EmotionEntry {
   manualType?: 'negative' | 'positive'; // 手動で設定された分類（ドラッグアンドドロップによる）
 }
 
+// 認知の歪みの型定義
+export interface CognitiveDistortion {
+  id: string;
+  name: string;
+  category: 'extreme' | 'selective' | 'intuitive' | 'selfBlame';
+  description: string;
+}
+
+export interface CognitiveDistortionTag {
+  distortionId: string;
+  intensity: number; // 1-5の強度
+}
+
 // コラム法のデータ型定義
 export interface ColumnEntry {
   id: string;
@@ -12,6 +25,7 @@ export interface ColumnEntry {
   situation: string;
   emotions: EmotionEntry[];
   automaticThought: string;
+  cognitiveDistortions?: CognitiveDistortionTag[]; // 認知の歪みタグ
   evidence: string;
   counterEvidence: string;
   adaptiveThought: string;
@@ -63,6 +77,7 @@ export interface SituationSection {
 export interface ThoughtSection {
   automaticThought: string;
   evidence: string;
+  cognitiveDistortions?: CognitiveDistortionTag[];
 }
 
 // セクション3：反証、適応思考、感情変化

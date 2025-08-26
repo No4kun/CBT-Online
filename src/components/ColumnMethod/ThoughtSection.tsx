@@ -1,7 +1,8 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { Brain, List } from 'lucide-react';
-import { ThoughtSection as ThoughtData, ColumnEntry } from '../../types';
+import { ThoughtSection as ThoughtData, ColumnEntry, CognitiveDistortionTag } from '../../types';
+import CognitiveDistortionSelector from './CognitiveDistortionSelector';
 
 interface ThoughtSectionProps {
   data: ThoughtData;
@@ -76,6 +77,20 @@ const ThoughtSection: React.FC<ThoughtSectionProps> = ({ data, onUpdate }) => {
             ))}
           </div>
         </div>
+      </div>
+
+      {/* 認知の歪み */}
+      <div className="space-y-3">
+        <div className="flex items-center space-x-2 text-lg font-medium text-calm-800">
+          <span>認知の歪み</span>
+        </div>
+        <p className="text-sm text-calm-600 mb-2">
+          自動思考に含まれる認知の歪みを特定してください
+        </p>
+        <CognitiveDistortionSelector
+          selectedDistortions={data.cognitiveDistortions || []}
+          onDistortionsChange={(distortions: CognitiveDistortionTag[]) => onUpdate({ cognitiveDistortions: distortions })}
+        />
       </div>
 
       {/* 根拠 */}

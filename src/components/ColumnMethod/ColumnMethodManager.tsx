@@ -23,6 +23,7 @@ import {
   categorizeEmotions,
   getEmotionType
 } from '../../utils/emotionClassification';
+import { cognitiveDistortions } from '../../utils/cognitiveDistortions';
 
 interface ColumnMethodManagerProps {
   // props can be added here if needed
@@ -439,6 +440,31 @@ const ColumnMethodManager: React.FC<ColumnMethodManagerProps> = () => {
                           </p>
                         </div>
 
+                        {/* 認知の歪み */}
+                        {record.cognitiveDistortions && record.cognitiveDistortions.length > 0 && (
+                          <div>
+                            <h4 className="text-sm font-medium text-gray-700 mb-2 flex items-center">
+                              <span className="w-2 h-2 bg-red-400 rounded-full mr-2"></span>
+                              認知の歪み ({record.cognitiveDistortions.length}個)
+                            </h4>
+                            <div className="flex flex-wrap gap-1">
+                              {record.cognitiveDistortions.slice(0, 3).map((tag, index) => {
+                                const distortion = cognitiveDistortions.find(d => d.id === tag.distortionId);
+                                return distortion ? (
+                                  <span key={index} className="px-2 py-1 text-xs bg-red-100 text-red-700 rounded-full">
+                                    {distortion.name}
+                                  </span>
+                                ) : null;
+                              })}
+                              {record.cognitiveDistortions.length > 3 && (
+                                <span className="px-2 py-1 text-xs bg-gray-100 text-gray-600 rounded-full">
+                                  +{record.cognitiveDistortions.length - 3}個
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                        )}
+
                         {/* 適応思考 */}
                         {record.adaptiveThought && (
                           <div>
@@ -657,6 +683,27 @@ const ColumnMethodManager: React.FC<ColumnMethodManagerProps> = () => {
                     <div>
                       <h3 className="text-sm font-medium text-gray-700 mb-2">根拠</h3>
                       <p className="text-gray-900 bg-gray-50 p-4 rounded-lg">{selectedRecord.evidence}</p>
+                    </div>
+                  )}
+
+                  {selectedRecord.cognitiveDistortions && selectedRecord.cognitiveDistortions.length > 0 && (
+                    <div>
+                      <h3 className="text-sm font-medium text-gray-700 mb-2">認知の歪み</h3>
+                      <div className="space-y-2">
+                        {selectedRecord.cognitiveDistortions.map((tag, index) => {
+                          const distortion = cognitiveDistortions.find(d => d.id === tag.distortionId);
+                          if (!distortion) return null;
+                          return (
+                            <div key={index} className="bg-red-50 border border-red-200 rounded-lg p-3">
+                              <div className="flex items-center justify-between">
+                                <span className="font-medium text-red-800">{distortion.name}</span>
+                                <span className="text-sm text-red-600">強度: {tag.intensity}/10</span>
+                              </div>
+                              <p className="text-sm text-red-700 mt-1">{distortion.description}</p>
+                            </div>
+                          );
+                        })}
+                      </div>
                     </div>
                   )}
                 </div>
