@@ -374,11 +374,15 @@ const ColumnMethodManager: React.FC<ColumnMethodManagerProps> = () => {
                           <div className="flex items-center gap-4 mb-2">
                             <div className="flex items-center text-sm text-gray-500">
                               <Calendar className="h-4 w-4 mr-1" />
-                              {formatDate(record.createdAt)}
+                              {new Date(record.dateTime).toLocaleDateString('ja-JP', {
+                                year: 'numeric',
+                                month: 'short',
+                                day: 'numeric'
+                              })}
                             </div>
                             <div className="flex items-center text-sm text-gray-500">
                               <Clock className="h-4 w-4 mr-1" />
-                              {new Date(record.createdAt).toLocaleTimeString('ja-JP', { 
+                              {new Date(record.dateTime).toLocaleTimeString('ja-JP', { 
                                 hour: '2-digit', 
                                 minute: '2-digit' 
                               })}
@@ -633,12 +637,31 @@ const ColumnMethodManager: React.FC<ColumnMethodManagerProps> = () => {
                 <div className="space-y-4">
                   <div className="grid md:grid-cols-2 gap-4">
                     <div>
-                      <h3 className="text-sm font-medium text-gray-700 mb-1">日付</h3>
-                      <p className="text-gray-900">{new Date(selectedRecord.createdAt).toLocaleDateString('ja-JP')}</p>
+                      <h3 className="text-sm font-medium text-gray-700 mb-1">出来事発生日</h3>
+                      <p className="text-gray-900">{new Date(selectedRecord.dateTime).toLocaleDateString('ja-JP', {
+                        year: 'numeric',
+                        month: 'long',
+                        day: 'numeric'
+                      })}</p>
+                      <p className="text-xs text-gray-500 mt-1">
+                        記録作成: {new Date(selectedRecord.createdAt).toLocaleDateString('ja-JP', {
+                          month: 'short',
+                          day: 'numeric'
+                        })}
+                      </p>
                     </div>
                     <div>
-                      <h3 className="text-sm font-medium text-gray-700 mb-1">時刻</h3>
-                      <p className="text-gray-900">{new Date(selectedRecord.createdAt).toLocaleTimeString('ja-JP', { hour: '2-digit', minute: '2-digit' })}</p>
+                      <h3 className="text-sm font-medium text-gray-700 mb-1">出来事発生時刻</h3>
+                      <p className="text-gray-900">{new Date(selectedRecord.dateTime).toLocaleTimeString('ja-JP', { 
+                        hour: '2-digit', 
+                        minute: '2-digit' 
+                      })}</p>
+                      <p className="text-xs text-gray-500 mt-1">
+                        記録時刻: {new Date(selectedRecord.createdAt).toLocaleTimeString('ja-JP', { 
+                          hour: '2-digit', 
+                          minute: '2-digit' 
+                        })}
+                      </p>
                     </div>
                   </div>
                   
