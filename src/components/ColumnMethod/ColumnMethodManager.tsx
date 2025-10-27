@@ -12,10 +12,12 @@ import {
   TrendingDown,
   BarChart3,
   X,
-  Shield
+  Shield,
+  PieChart
 } from 'lucide-react';
 import type { ColumnEntry } from '../../types';
 import ColumnMethodForm from './ColumnMethodForm';
+import ColumnMethodStats from './ColumnMethodStats';
 import { 
   calculateImprovement, 
   getEmotionColorWithIntensity,
@@ -37,6 +39,7 @@ const ColumnMethodManager: React.FC<ColumnMethodManagerProps> = () => {
   const [showDetailModal, setShowDetailModal] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const recordsPerPage = 10;
+  const [activeTab, setActiveTab] = useState<'records' | 'stats'>('records');
 
   // localStorage からデータを読み込み（復旧機能付き + 複数バックアップ形式対応）
   useEffect(() => {
@@ -253,6 +256,36 @@ const ColumnMethodManager: React.FC<ColumnMethodManagerProps> = () => {
           transition={{ delay: 0.1 }}
           className="bg-white rounded-xl shadow-lg p-6 mb-6"
         >
+          {/* タブ */}
+          <div className="flex gap-2 mb-6 border-b border-gray-200">
+            <button
+              onClick={() => setActiveTab('records')}
+              className={`px-6 py-3 font-medium transition-colors border-b-2 ${
+                activeTab === 'records'
+                  ? 'border-purple-600 text-purple-600'
+                  : 'border-transparent text-gray-500 hover:text-gray-700'
+              }`}
+            >
+              <div className="flex items-center gap-2">
+                <Brain className="h-5 w-5" />
+                記録一覧
+              </div>
+            </button>
+            <button
+              onClick={() => setActiveTab('stats')}
+              className={`px-6 py-3 font-medium transition-colors border-b-2 ${
+                activeTab === 'stats'
+                  ? 'border-purple-600 text-purple-600'
+                  : 'border-transparent text-gray-500 hover:text-gray-700'
+              }`}
+            >
+              <div className="flex items-center gap-2">
+                <PieChart className="h-5 w-5" />
+                統計・分析
+              </div>
+            </button>
+          </div>
+
           <div className="flex flex-wrap gap-4 justify-between items-center">
             <button
               onClick={handleCreateNew}
@@ -337,8 +370,13 @@ const ColumnMethodManager: React.FC<ColumnMethodManagerProps> = () => {
           </motion.div>
         )}
 
-        {/* 記録一覧 */}
-        <div className="space-y-4">
+        {/* タブコンテンツ */}
+        {activeTab === 'stats' ? (
+          <ColumnMethodStats records={records} />
+        ) : (
+          <>
+            {/* 記録一覧 */}
+            <div className="space-y-4">
 
         {records.length === 0 ? (
           <div className="p-12 text-center">
@@ -948,6 +986,8 @@ const ColumnMethodManager: React.FC<ColumnMethodManagerProps> = () => {
           </motion.div>
         </motion.div>
       )}
+          </>
+        )}
       </div>
     </div>
   );
