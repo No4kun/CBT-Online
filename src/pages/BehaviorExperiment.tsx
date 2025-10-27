@@ -13,6 +13,8 @@ const BehaviorExperimentPage: React.FC = () => {
   const [editingResult, setEditingResult] = useState<BehaviorExperimentResult | null>(null);
   const [formMode, setFormMode] = useState<'plan' | 'result'>('plan');
   const [expandedItems, setExpandedItems] = useState<Set<string>>(new Set());
+  const [currentPage, setCurrentPage] = useState(1);
+  const recordsPerPage = 10;
 
   // LocalStorageからデータを読み込み
   useEffect(() => {
@@ -300,7 +302,9 @@ const BehaviorExperimentPage: React.FC = () => {
               <p>「新しい実験計画」ボタンから始めましょう</p>
             </motion.div>
           ) : (
-            experiments.map((experiment, index) => (
+            experiments
+              .slice((currentPage - 1) * recordsPerPage, currentPage * recordsPerPage)
+              .map((experiment, index) => (
               <motion.div
                 key={experiment.plan.id}
                 initial={{ opacity: 0, y: 20 }}
@@ -497,6 +501,55 @@ const BehaviorExperimentPage: React.FC = () => {
                 )}
               </motion.div>
             ))
+          )}
+
+          {/* ページネーション */}
+          {experiments.length > recordsPerPage && (
+            <div className="flex justify-center items-center gap-2 py-6 mt-6">
+              <button
+                onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                disabled={currentPage === 1}
+                className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+                  currentPage === 1
+                    ? 'bg-gray-200 text-gray-400 cursor-not-allowed'
+                    : 'bg-green-100 text-green-700 hover:bg-green-200'
+                }`}
+              >
+                前へ
+              </button>
+              
+              <div className="flex gap-1">
+                {Array.from({ length: Math.ceil(experiments.length / recordsPerPage) }, (_, i) => i + 1).map(page => (
+                  <button
+                    key={page}
+                    onClick={() => setCurrentPage(page)}
+                    className={`px-3 py-2 rounded-lg font-medium transition-colors ${
+                      currentPage === page
+                        ? 'bg-green-600 text-white'
+                        : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                    }`}
+                  >
+                    {page}
+                  </button>
+                ))}
+              </div>
+
+              <button
+                onClick={() => setCurrentPage(prev => Math.min(Math.ceil(experiments.length / recordsPerPage), prev + 1))}
+                disabled={currentPage === Math.ceil(experiments.length / recordsPerPage)}
+                className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+                  currentPage === Math.ceil(experiments.length / recordsPerPage)
+                    ? 'bg-gray-200 text-gray-400 cursor-not-allowed'
+                    : 'bg-green-100 text-green-700 hover:bg-green-200'
+                }`}
+              >
+                次へ
+              </button>
+
+              <div className="ml-4 text-sm text-gray-600">
+                {experiments.length}件中 {(currentPage - 1) * recordsPerPage + 1}〜{Math.min(currentPage * recordsPerPage, experiments.length)}件を表示
+              </div>
+            </div>
           )}
         </div>
       </div>

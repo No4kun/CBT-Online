@@ -17,6 +17,8 @@ const ActivityRecordPage: React.FC = () => {
   const [records, setRecords] = useState<ActivityRecord[]>([]);
   const [showForm, setShowForm] = useState(false);
   const [editingRecord, setEditingRecord] = useState<ActivityRecord | null>(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const recordsPerPage = 10;
 
   useEffect(() => {
     loadFromLocalStorage();
@@ -210,6 +212,7 @@ const ActivityRecordPage: React.FC = () => {
           ) : (
             records
               .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+              .slice((currentPage - 1) * recordsPerPage, currentPage * recordsPerPage)
               .map((record) => (
                 <motion.div
                   key={record.id}
@@ -270,6 +273,55 @@ const ActivityRecordPage: React.FC = () => {
                   </div>
                 </motion.div>
               ))
+          )}
+
+          {/* ページネーション */}
+          {records.length > recordsPerPage && (
+            <div className="flex justify-center items-center gap-2 py-6">
+              <button
+                onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                disabled={currentPage === 1}
+                className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+                  currentPage === 1
+                    ? 'bg-gray-200 text-gray-400 cursor-not-allowed'
+                    : 'bg-orange-100 text-orange-700 hover:bg-orange-200'
+                }`}
+              >
+                前へ
+              </button>
+              
+              <div className="flex gap-1">
+                {Array.from({ length: Math.ceil(records.length / recordsPerPage) }, (_, i) => i + 1).map(page => (
+                  <button
+                    key={page}
+                    onClick={() => setCurrentPage(page)}
+                    className={`px-3 py-2 rounded-lg font-medium transition-colors ${
+                      currentPage === page
+                        ? 'bg-orange-600 text-white'
+                        : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                    }`}
+                  >
+                    {page}
+                  </button>
+                ))}
+              </div>
+
+              <button
+                onClick={() => setCurrentPage(prev => Math.min(Math.ceil(records.length / recordsPerPage), prev + 1))}
+                disabled={currentPage === Math.ceil(records.length / recordsPerPage)}
+                className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+                  currentPage === Math.ceil(records.length / recordsPerPage)
+                    ? 'bg-gray-200 text-gray-400 cursor-not-allowed'
+                    : 'bg-orange-100 text-orange-700 hover:bg-orange-200'
+                }`}
+              >
+                次へ
+              </button>
+
+              <div className="ml-4 text-sm text-gray-600">
+                {records.length}件中 {(currentPage - 1) * recordsPerPage + 1}〜{Math.min(currentPage * recordsPerPage, records.length)}件を表示
+              </div>
+            </div>
           )}
         </div>
       </div>
